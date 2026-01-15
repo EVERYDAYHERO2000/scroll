@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Animation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #F2F2F2;
+            font-family: Arial, sans-serif;
+            min-height: 200vh; /* Запас для скролла вниз */
+            padding-top: 50vh; /* Запас над первой карточкой */
+        }
+
+        .layout-container {
+            background-color: #F2F2F2;
+            max-width: 370px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 0;
+        }
+
+        @media (max-width: 400px) {
+            .layout-container {
+                padding: 0 16px;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0;
+            position: relative;
+            min-height: 370px;
+        }
+
+        .layout-container > .card:first-of-type {
+            margin-top: 0;
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        #animationCanvas {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%) translateY(-14.5%) scale(0.4);
+            top: 0;
+            background: transparent;
+            border: none;
+            z-index: 10;
+        }
+
+        .card-container {
+            position: relative;
+            min-height: 300px;
+            padding-top: 150px; /* Место для canvas */
+        }
+
+        .background-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            display: flex;
+            align-items: top;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .background-section img {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            object-position: center;
+            margin-top: 100px;
+            transform: translateY(100vh);
+            /* Без transition, чтобы не было анимации при загрузке */
+        }
+
+        .background-section img.bounce-in {
+            animation: bounceIn 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: translateY(20vh);
+                
+            }
+            50% {
+                
+            }
+            60% {
+                transform: translateY(-20px);
+                opacity: 1;
+            }
+            75% {
+                transform: translateY(5px);
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .layout-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .debug-info {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            font-family: monospace;
+            font-size: 14px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-section">
+        <img src="image 227.png" alt="Background">
+    </div>
+    
+    <div class="layout-container">
+        <div class="card">
+            <div class="card-container">
+                <canvas id="animationCanvas"></canvas>
+                
+            </div>
+        </div>
+
+        <div class="card">
+            
+        </div>
+
+        <div class="card">
+           
+        </div>
+    </div>
+
+    <div class="debug-info">
+        <span id="cardPositionDebug">Card top: 0px</span>
+        <span id="scrollSpeedDebug">Scroll speed: 0 px/s</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('animationCanvas');
+        const ctx = canvas.getContext('2d', { alpha: true });
+        const cardPositionDebug = document.getElementById('cardPositionDebug');
+        const scrollSpeedDebug = document.getElementById('scrollSpeedDebug');
+        const firstCard = document.querySelector('.layout-container > .card:first-of-type');
+        const backgroundImage = document.querySelector('.background-section img');
+        
+        // Позиция для анимации изображения
+        const IMAGE_BOUNCE_TRIGGER = 270; // Позиция карточки для запуска анимации изображения
+        let imageBounceTriggered = false; // Флаг, была ли уже запущена анимация
+
+        // Параметры спрайта
+        let spriteSheet = null;
+        let frameWidth = 0;
+        let frameHeight = 0;
+        let totalFramesCount = 0;
+        let videoFPS = 30;
+
+        // Настройки позиционирования
+        const initialCardOffset = 80; // Расстояние от верхнего края вьюпорта до верхнего края первой карточки (в пикселях)
+        
+        // Позиции для управления анимацией
+        const CARD_POSITION_FIRST_FRAME = 80;   // При этой позиции или меньше - первый кадр (0)
+        const CARD_POSITION_LAST_FRAME = 200;  // При этой позиции или больше - последний кадр
+
+        // Состояние анимации
+        let currentFrame = 0;
+        let targetFrame = 0; // Целевой кадр, к которому нужно плавно перейти
+        let isAnimating = false;
+        let lastFrameTime = 0;
+        let animationId = null;
+        let lastScrollY = window.scrollY;
+        let scrollSpeed = 0; // Скорость скролла в пикселях в секунду
+        let lastScrollTime = Date.now();
+        
+        // Эффект time echo - история предыдущих кадров
+        const echoHistory = []; // Массив объектов {frameIndex, timestamp, imageData}
+        const ECHO_DURATION = 0.5; // Длительность эха в секундах
+        const ECHO_FADE_STEPS = 5; // Количество шагов затухания
+
+        // Цвета для прозрачности
+        const transparentColors = [
+            { r: 235, g: 233, b: 231 }, // #EBE9E7
+            { r: 255, g: 255, b: 255 }  // #FFF
+        ];
+        const threshold = 25;
+
+        // Функция для проверки, является ли цвет "прозрачным"
+        function shouldBeTransparent(r, g, b) {
+            return transparentColors.some(color => {
+                return Math.abs(r - color.r) <= threshold &&
+                       Math.abs(g - color.g) <= threshold &&
+                       Math.abs(b - color.b) <= threshold;
+            });
+        }
+
+        // Функция для обработки кадра и создания прозрачности
+        function processFrameData(imageData) {
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                
+                if (shouldBeTransparent(r, g, b)) {
+                    data[i + 3] = 0; // alpha
+                }
+            }
+            
+            return imageData;
+        }
+
+        // Функция для получения обработанного изображения кадра
+        function getProcessedFrameImage(frameIndex) {
+            if (!spriteSheet || frameIndex < 0 || frameIndex >= totalFramesCount) {
+                return null;
+            }
+            
+            const sourceX = frameIndex * frameWidth;
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = frameWidth;
+            tempCanvas.height = frameHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            tempCtx.drawImage(
+                spriteSheet,
+                sourceX, 0, frameWidth, frameHeight,
+                0, 0, frameWidth, frameHeight
+            );
+            
+            const imageData = tempCtx.getImageData(0, 0, frameWidth, frameHeight);
+            return processFrameData(imageData);
+        }
+
+        // Функция для отрисовки кадра с эффектом time echo
+        function drawFrame(frameIndex) {
+            if (!spriteSheet) {
+                return;
+            }
+            
+            if (frameIndex < 0 || frameIndex >= totalFramesCount) {
+                return;
+            }
+            
+            const now = performance.now();
+            
+            // Очищаем canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Удаляем старые кадры из истории (старше ECHO_DURATION)
+            const cutoffTime = now - (ECHO_DURATION * 1000);
+            while (echoHistory.length > 0 && echoHistory[0].timestamp < cutoffTime) {
+                echoHistory.shift();
+            }
+            
+            // Отрисовываем предыдущие кадры с уменьшающейся прозрачностью (от старых к новым)
+            for (let i = 0; i < echoHistory.length; i++) {
+                const echo = echoHistory[i];
+                const age = (now - echo.timestamp) / 1000; // возраст в секундах
+                const fadeProgress = age / ECHO_DURATION; // от 0 до 1
+                const alpha = 1 - fadeProgress; // от 1 до 0
+                
+                if (alpha > 0 && echo.imageData) {
+                    // Создаем копию imageData с примененной прозрачностью
+                    const fadedData = new ImageData(
+                        new Uint8ClampedArray(echo.imageData.data),
+                        echo.imageData.width,
+                        echo.imageData.height
+                    );
+                    
+                    // Применяем прозрачность к каждому пикселю
+                    for (let j = 3; j < fadedData.data.length; j += 4) {
+                        fadedData.data[j] = Math.floor(fadedData.data[j] * alpha);
+                    }
+                    
+                    ctx.putImageData(fadedData, 0, 0);
+                }
+            }
+            
+            // Получаем текущий кадр
+            const currentImageData = getProcessedFrameImage(frameIndex);
+            if (currentImageData) {
+                // Отрисовываем текущий кадр поверх эха
+                ctx.putImageData(currentImageData, 0, 0);
+                
+                // Добавляем текущий кадр в историю эха
+                const imageDataCopy = new ImageData(
+                    new Uint8ClampedArray(currentImageData.data),
+                    currentImageData.width,
+                    currentImageData.height
+                );
+                echoHistory.push({
+                    frameIndex: frameIndex,
+                    timestamp: now,
+                    imageData: imageDataCopy
+                });
+            }
+        }
+
+        // Загрузка спрайта
+        async function loadSprite(spritePath = 'sprite.png', metadataPath = 'sprite_metadata.json') {
+            try {
+                const metadataResponse = await fetch(metadataPath);
+                const metadata = await metadataResponse.json();
+                
+                frameWidth = metadata.frame_width;
+                frameHeight = metadata.frame_height;
+                totalFramesCount = metadata.frame_count;
+                videoFPS = metadata.fps;
+                
+                console.log('Метаданные загружены:', metadata);
+                
+                const spriteImage = new Image();
+                spriteImage.crossOrigin = 'anonymous';
+                
+                await new Promise((resolve, reject) => {
+                    spriteImage.onload = () => {
+                        spriteSheet = spriteImage;
+                        console.log('Спрайт-лист загружен:', spriteImage.width, 'x', spriteImage.height);
+                        
+                        canvas.width = frameWidth;
+                        canvas.height = frameHeight;
+                        
+                        // Позиционируем canvas так, чтобы его горизонтальный центр был на границе карточки
+                        // Это означает, что половина canvas должна быть над карточкой
+                        canvas.style.top = `-${frameHeight / 2}px`;
+                        
+                        currentFrame = 0;
+                        drawFrame(0);
+                        
+                        // Проверяем позицию карточки и устанавливаем соответствующий кадр
+                        if (firstCard) {
+                            const cardTop = Math.round(firstCard.getBoundingClientRect().top);
+                            targetFrame = calculateTargetFrame(cardTop);
+                            currentFrame = targetFrame;
+                            drawFrame(Math.floor(currentFrame));
+                        }
+                        
+                        console.log('Спрайт готов к использованию');
+                        resolve();
+                    };
+                    spriteImage.onerror = reject;
+                    spriteImage.src = spritePath;
+                });
+            } catch (error) {
+                console.error('Ошибка при загрузке спрайта:', error);
+            }
+        }
+
+        // Анимация - плавный переход к целевому кадру
+        function animate(timestamp) {
+            if (!isAnimating) {
+                animationId = null;
+                return;
+            }
+            
+            if (!spriteSheet || totalFramesCount === 0) {
+                animationId = null;
+                return;
+            }
+            
+            const now = performance.now();
+            let deltaTime = 0;
+            
+            if (lastFrameTime > 0) {
+                deltaTime = (now - lastFrameTime) / 1000;
+                deltaTime = Math.min(deltaTime, 0.1);
+            } else {
+                lastFrameTime = now;
+                deltaTime = 0.016;
+            }
+            
+            // Скорость перехода к целевому кадру на основе скорости скролла
+            const animationSpeedMultiplier = calculateAnimationSpeed(scrollSpeed);
+            const transitionSpeed = videoFPS * animationSpeedMultiplier;
+            const maxFrameChange = deltaTime * transitionSpeed;
+            
+            // Плавно переходим к целевому кадру
+            const diff = targetFrame - currentFrame;
+            
+            if (Math.abs(diff) < 0.01) {
+                // Достигли целевого кадра
+                currentFrame = targetFrame;
+                isAnimating = false;
+                drawFrame(Math.floor(currentFrame));
+                animationId = null;
+                return;
+            }
+            
+            // Плавное движение к целевому кадру
+            if (diff > 0) {
+                currentFrame = Math.min(currentFrame + maxFrameChange, targetFrame);
+            } else {
+                currentFrame = Math.max(currentFrame - maxFrameChange, targetFrame);
+            }
+            
+            const frameToDraw = Math.max(0, Math.min(Math.floor(currentFrame), totalFramesCount - 1));
+            drawFrame(frameToDraw);
+            
+            lastFrameTime = now;
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Вычисление целевого кадра на основе позиции карточки
+        // Анимация всегда стремится либо к первому кадру (0), либо к последнему кадру
+        function calculateTargetFrame(cardTop) {
+            // Вычисляем расстояние до обеих позиций
+            const distToFirst = Math.abs(cardTop - CARD_POSITION_FIRST_FRAME);
+            const distToLast = Math.abs(cardTop - CARD_POSITION_LAST_FRAME);
+            
+            // Определяем, к какой позиции ближе карточка
+            if (distToFirst <= distToLast) {
+                // Ближе к позиции 80px - стремимся к первому кадру
+                return 0;
+            } else {
+                // Ближе к позиции 465px - стремимся к последнему кадру
+                return totalFramesCount - 1;
+            }
+        }
+
+        // Обновление целевого кадра и запуск анимации
+        function updateAnimation(cardTop) {
+            if (!spriteSheet || totalFramesCount === 0) {
+                return;
+            }
+            
+            const newTargetFrame = calculateTargetFrame(cardTop);
+            
+            // Если целевой кадр изменился, обновляем его и запускаем анимацию
+            if (Math.abs(newTargetFrame - targetFrame) > 0.01) {
+                targetFrame = newTargetFrame;
+                
+                if (!isAnimating) {
+                    isAnimating = true;
+                    lastFrameTime = 0;
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                    }
+                    requestAnimationFrame(animate);
+                }
+            }
+        }
+
+        // Функция для обновления позиции карточки в debug info
+        function updateCardPositionDebug() {
+            if (firstCard && cardPositionDebug) {
+                const cardTop = Math.round(firstCard.getBoundingClientRect().top);
+                cardPositionDebug.textContent = `Card top: ${cardTop}px`;
+            }
+        }
+
+        // Функция для вычисления множителя скорости анимации на основе скорости скролла
+        function calculateAnimationSpeed(scrollSpeedValue) {
+            if (scrollSpeedValue >= 1 && scrollSpeedValue < 20) {
+                return 2; // 2x для скорости скролла от 1 до 20 px/s
+            } else if (scrollSpeedValue >= 20 && scrollSpeedValue < 150) {
+                return 4; // 4x для скорости скролла от 20 до 150 px/s
+            } else if (scrollSpeedValue >= 150) {
+                return 6; // 6x для скорости скролла более 150 px/s
+            }
+            // Если скорость меньше 1, используем минимальную скорость 2x
+            return 2;
+        }
+
+        // Функция для обновления скорости скролла в debug info
+        function updateScrollSpeedDebug() {
+            if (scrollSpeedDebug) {
+                const animationSpeedMultiplier = calculateAnimationSpeed(scrollSpeed);
+                scrollSpeedDebug.textContent = `Scroll speed: ${Math.round(scrollSpeed)} px/s (anim: ${animationSpeedMultiplier}x)`;
+            }
+            // Логируем в консоль
+            console.log('Scroll speed:', scrollSpeed.toFixed(2), 'px/s', 'Animation speed:', calculateAnimationSpeed(scrollSpeed) + 'x');
+        }
+
+        // Обработчик скролла
+        function setupScrollHandler() {
+            window.addEventListener('scroll', () => {
+                if (!firstCard) return;
+                
+                const cardTop = firstCard.getBoundingClientRect().top;
+                const currentScrollY = window.scrollY;
+                const now = Date.now();
+                
+                // Вычисляем скорость скролла
+                const timeDelta = (now - lastScrollTime) / 1000; // в секундах
+                const scrollDelta = currentScrollY - lastScrollY;
+                
+                if (timeDelta > 0) {
+                    scrollSpeed = Math.abs(scrollDelta / timeDelta); // пикселей в секунду
+                } else {
+                    scrollSpeed = 0;
+                }
+                
+                lastScrollY = currentScrollY;
+                lastScrollTime = now;
+                
+                // Обновляем позицию карточки в debug info
+                updateCardPositionDebug();
+                
+                // Обновляем скорость скролла в debug info
+                updateScrollSpeedDebug();
+                
+                // Проверяем, нужно ли сбросить анимацию изображения
+                // Когда карточка на 80px или меньше - сбрасываем анимацию
+                if (backgroundImage && cardTop <= CARD_POSITION_FIRST_FRAME) {
+                    if (imageBounceTriggered) {
+                        imageBounceTriggered = false;
+                        backgroundImage.classList.remove('bounce-in');
+                        backgroundImage.style.animation = 'none';
+                        // Принудительно сбрасываем transform, чтобы вернуть изображение вниз
+                        setTimeout(() => {
+                            backgroundImage.style.transform = 'translateY(100vh)';
+                            backgroundImage.style.animation = '';
+                        }, 10);
+                    }
+                }
+                
+                // Проверяем, нужно ли запустить анимацию изображения
+                // Анимация запускается когда карточка пересекает позицию 270px (270px или больше от верха)
+                if (backgroundImage && !imageBounceTriggered && cardTop >= IMAGE_BOUNCE_TRIGGER) {
+                    imageBounceTriggered = true;
+                    backgroundImage.classList.add('bounce-in');
+                }
+                
+                // Обновляем анимацию на основе позиции карточки
+                updateAnimation(cardTop);
+            });
+        }
+
+        // Установка начальной позиции скролла
+        function setInitialScrollPosition() {
+            // Вычисляем позицию скролла так, чтобы верхний край первой карточки
+            // находился на расстоянии initialCardOffset (80px) от верха вьюпорта
+            // Учитываем, что у body есть padding-top: 50vh (половина высоты вьюпорта)
+            const paddingTop = window.innerHeight / 2; // 50vh
+            const scrollPosition = paddingTop - initialCardOffset;
+            window.scrollTo(0, scrollPosition);
+            lastScrollY = scrollPosition;
+            lastScrollTime = Date.now();
+            scrollSpeed = 0;
+        }
+
+        // Инициализация при загрузке страницы
+        function initializePage() {
+            // Настраиваем обработчик скролла
+            setupScrollHandler();
+            
+            // Устанавливаем начальную позицию скролла после полной загрузки
+            // Используем requestAnimationFrame для гарантии, что страница отрендерена
+            requestAnimationFrame(() => {
+                setInitialScrollPosition();
+                updateCardPositionDebug();
+                
+                // Устанавливаем начальный кадр на основе позиции карточки
+                if (firstCard && spriteSheet) {
+                    const cardTop = Math.round(firstCard.getBoundingClientRect().top);
+                    targetFrame = calculateTargetFrame(cardTop);
+                    currentFrame = targetFrame;
+                    drawFrame(Math.floor(currentFrame));
+                }
+            });
+            
+            // Обновляем позицию карточки периодически
+            setInterval(updateCardPositionDebug, 100);
+            
+            console.log('Загрузка спрайта...');
+            loadSprite().catch(error => {
+                console.error('Ошибка при загрузке спрайта:', error);
+            });
+        }
+
+        // Устанавливаем начальную позицию при загрузке страницы
+        if (document.readyState === 'loading') {
+            window.addEventListener('load', initializePage);
+        } else {
+            // Если страница уже загружена, инициализируем сразу
+            initializePage();
+        }
+    </script>
+</body>
+</html>
