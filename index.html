@@ -25,7 +25,7 @@
         .scroll-container {
             height: 100vh;
             overflow-y: scroll;
-            scroll-snap-type: y mandatory;
+            scroll-snap-type: y mandatory; /* Обязательный snap */
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
@@ -35,6 +35,12 @@
             scroll-snap-align: start;
             scroll-snap-stop: always;
             position: relative;
+        }
+        
+        /* Отключаем snap для всех snap-point когда позиция <= 88px */
+        .scroll-container.no-snap-cards .snap-point {
+            scroll-snap-align: none !important;
+            scroll-snap-stop: normal !important;
         }
 
         /* Навигационное меню */
@@ -333,7 +339,7 @@
         <span id="scrollYDebug">scrollY: 0px</span>
         <span id="cardTopDebug">Card top: 0px</span>
         <span id="snapPointDebug">Snap point: -</span>
-        <span id="scrollDirectionDebug">Direction: -</span>
+        <span id="scrollDirectionDebug">Scroll direction: -</span>
         <span id="currentFrameDebug">Current frame: 0</span>
         <span id="animationDirectionDebug">Animation direction: -</span>
     </div>
@@ -712,6 +718,9 @@
             requestAnimationFrame(updateSlideOffset);
         }
 
+        // Переменная для отслеживания предыдущей позиции скролла в updateDebugInfo
+        let lastDebugScrollY = 0;
+
         // Обновление debug информации
         function updateDebugInfo() {
             const scrollY = scrollContainer.scrollTop;
@@ -728,9 +737,15 @@
                 snapPointDebug.textContent = `Snap point: normal`;
             }
             
-            const scrollDirection = scrollY > lastScrollY ? 'down' : 'up';
-            scrollDirectionDebug.textContent = `Direction: ${scrollDirection}`;
-            lastScrollY = scrollY;
+            // Определяем направление скролла по изменению scrollY
+            let scrollDirection = '-';
+            if (scrollY > lastDebugScrollY) {
+                scrollDirection = 'down';
+            } else if (scrollY < lastDebugScrollY) {
+                scrollDirection = 'up';
+            }
+            scrollDirectionDebug.textContent = `Scroll direction: ${scrollDirection}`;
+            lastDebugScrollY = scrollY;
             
             // Текущий кадр анимации
             const currentFrameIndex = Math.floor(currentFrame);
@@ -777,12 +792,24 @@
                 lastScrollY = currentScrollY;
                 lastScrollTime = now;
                 
+                // Управление snap для карточек
+                const INITIAL_CARD_POSITION = 88; // Первоначальное положение карточки
+                
+                // Если позиция карточки 88px или меньше - отключаем snap для карточек
+                if (cardTop <= INITIAL_CARD_POSITION) {
+                    scrollContainer.classList.add('no-snap-cards');
+                } else {
+                    scrollContainer.classList.remove('no-snap-cards');
+                }
+                
+                // Обновляем debug информацию сразу после определения направления
+                updateDebugInfo();
+                
                 // Анимация фонового изображения
                 if (backgroundImage && backgroundWrapper) {
                     const currentFrameIndex = Math.floor(currentFrame);
-                    const INITIAL_CARD_POSITION = 88; // Первоначальное положение карточки (32px + 56px навигация)
-                    const POSITION_TOLERANCE = 5; // Допустимое отклонение
-                    const isAtInitialPosition = Math.abs(cardTop - INITIAL_CARD_POSITION) <= POSITION_TOLERANCE;
+                    const POSITION_TOLERANCE_BG = 5; // Допустимое отклонение для фоновой анимации
+                    const isAtInitialPosition = Math.abs(cardTop - INITIAL_CARD_POSITION) <= POSITION_TOLERANCE_BG;
                     
                     // Условие 1: Сбрасываем анимацию когда карточка в первоначальном положении
                     if (isAtInitialPosition) {
@@ -818,14 +845,13 @@
                 }
                 
                 // Проверка: если карточка вернулась в первоначальное положение (88px), а анимация не запущена - принудительно запускаем
-                const INITIAL_CARD_POSITION = 88; // Первоначальное положение карточки (32px + 56px навигация)
-                const POSITION_TOLERANCE = 5; // Допустимое отклонение в пикселях
+                const POSITION_TOLERANCE_ANIM = 5; // Допустимое отклонение в пикселях для анимации
                 
                 // Проверяем, что карточка в исходном положении
-                const isAtInitialPosition = Math.abs(cardTop - INITIAL_CARD_POSITION) <= POSITION_TOLERANCE;
+                const isAtInitialPositionForAnim = Math.abs(cardTop - INITIAL_CARD_POSITION) <= POSITION_TOLERANCE_ANIM;
                 
                 // Если карточка в исходном положении и анимация не активна или остановилась
-                if (isAtInitialPosition && spriteSheet && totalFramesCount > 0) {
+                if (isAtInitialPositionForAnim && spriteSheet && totalFramesCount > 0) {
                     const newTargetFrame = calculateTargetFrame(cardTop);
                     
                     // Всегда обновляем целевой кадр и запускаем анимацию, если она не активна
@@ -845,9 +871,6 @@
                         }
                     }
                 }
-                
-                // Обновляем debug информацию
-                updateDebugInfo();
                 
                 // Обновляем анимацию на основе позиции карточки (как в scroll-animation.html)
                 updateAnimation(cardTop);
