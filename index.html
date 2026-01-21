@@ -328,6 +328,10 @@
         const canvas = document.getElementById('animationCanvas');
         const ctx = canvas.getContext('2d', { alpha: true });
 
+        // Переменная для отслеживания позиции карточки для обновления фона
+        let lastCardTopForBackground = 0;
+        let backgroundUpdateFrameId = null;
+
         // Параметры спрайта
         let spriteSheet = null;
         let frameWidth = 0;
@@ -766,6 +770,41 @@
             animationDirectionDebug.textContent = `Animation direction: ${animationDirection}`;
         }
 
+        // Функция для обновления позиции background-section
+        function updateBackgroundPosition() {
+            if (!backgroundWrapper || !firstCard) {
+                if (backgroundUpdateFrameId) {
+                    cancelAnimationFrame(backgroundUpdateFrameId);
+                    backgroundUpdateFrameId = null;
+                }
+                return;
+            }
+
+            const cardTop = firstCard.getBoundingClientRect().top;
+            const minCardPosition = 88; // Минимальная позиция карточки
+            const maxCardPosition = 493; // Максимальная позиция карточки
+            const minTranslateY = 0; // Когда карточка на максимальной позиции (493px) - background-section вверху
+            const maxTranslateY = 100; // Когда карточка на минимальной позиции (88px) - background-section внизу (100vh)
+            
+            let translateY;
+            if (cardTop <= minCardPosition) {
+                // Если карточка на 88px или меньше - background-section внизу
+                translateY = maxTranslateY;
+            } else if (cardTop >= maxCardPosition) {
+                // Если карточка на 493px или больше - background-section вверху
+                translateY = minTranslateY;
+            } else {
+                // Интерполяция между min и max в диапазоне 88px - 493px
+                const progress = (cardTop - minCardPosition) / (maxCardPosition - minCardPosition);
+                translateY = maxTranslateY - (maxTranslateY - minTranslateY) * progress;
+            }
+            
+            backgroundWrapper.style.transform = `translateY(${translateY}vh)`;
+            
+            // Продолжаем обновление в следующем кадре
+            backgroundUpdateFrameId = requestAnimationFrame(updateBackgroundPosition);
+        }
+
         // Обработчик скролла (как в scroll-animation.html)
         function setupScrollHandler() {
             scrollContainer.addEventListener('scroll', () => {
@@ -804,28 +843,8 @@
                 // Обновляем debug информацию сразу после определения направления
                 updateDebugInfo();
                 
-                // Позиционирование background-section в зависимости от позиции карточки
-                if (backgroundWrapper) {
-                    const minCardPosition = 88; // Минимальная позиция карточки
-                    const maxCardPosition = 493; // Максимальная позиция карточки
-                    const minTranslateY = 0; // Когда карточка на максимальной позиции (493px) - background-section вверху
-                    const maxTranslateY = 100; // Когда карточка на минимальной позиции (88px) - background-section внизу (100vh)
-                    
-                    let translateY;
-                    if (cardTop <= minCardPosition) {
-                        // Если карточка на 88px или меньше - background-section внизу
-                        translateY = maxTranslateY;
-                    } else if (cardTop >= maxCardPosition) {
-                        // Если карточка на 493px или больше - background-section вверху
-                        translateY = minTranslateY;
-                    } else {
-                        // Интерполяция между min и max в диапазоне 88px - 493px
-                        const progress = (cardTop - minCardPosition) / (maxCardPosition - minCardPosition);
-                        translateY = maxTranslateY - (maxTranslateY - minTranslateY) * progress;
-                    }
-                    
-                    backgroundWrapper.style.transform = `translateY(${translateY}vh)`;
-                }
+                // Сохраняем текущую позицию карточки для обновления фона
+                lastCardTopForBackground = cardTop;
                 
                 // Проверка: если карточка вернулась в первоначальное положение (88px и меньше), а анимация не запущена - принудительно запускаем
                 // Проверяем, что карточка в исходном положении (88px и меньше)
@@ -932,6 +951,9 @@
             
             // Инициализируем фоновое видео
             initializeBackgroundVideo();
+            
+            // Запускаем непрерывное обновление позиции фона
+            updateBackgroundPosition();
             
             // Устанавливаем начальную позицию - нормальное состояние (минуя пустоту)
             requestAnimationFrame(() => {
