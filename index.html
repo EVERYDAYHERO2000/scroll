@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magnetic Scroll Effect - Three Background Cards</title>
+    <title>Magnetic Scroll Effect - Reverse Animation</title>
     <style>
         * {
             margin: 0;
@@ -203,17 +203,6 @@
 
         .background-section-wrapper {
             margin-top: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 20px;
-            height: 300px;
-            overflow-x: auto;
-            overflow-y: hidden;
-            scroll-snap-type: x mandatory;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-            scroll-padding: 0 50%;
         }
 
         .background-section video {
@@ -226,9 +215,6 @@
             object-fit: contain;
             object-position: center;
             opacity: 1;
-            flex: 0 0 auto;
-            scroll-snap-align: center;
-            scroll-snap-stop: always;
         }
 
         /* Контейнер для карточек с отступами */
@@ -261,17 +247,8 @@
 <body>
     <div class="background-section">
         <div class="background-section-wrapper">
-            <!-- Левая карточка -->
-            <video id="backgroundVideoLeft" src="3221556df51311f0a9f6065170103629.mp4" autoplay loop muted playsinline></video>
-            <canvas id="backgroundCanvasLeft"></canvas>
-            
-            <!-- Центральная карточка -->
             <video id="backgroundVideo" src="6cccfa21f50c11f0b1b012d53b0fb308.mp4" autoplay loop muted playsinline></video>
             <canvas id="backgroundCanvas"></canvas>
-            
-            <!-- Правая карточка -->
-            <video id="backgroundVideoRight" src="63272c13f51311f0b6a7d69cb624da98.mp4" autoplay loop muted playsinline></video>
-            <canvas id="backgroundCanvasRight"></canvas>
         </div>
     </div>
     
@@ -346,15 +323,6 @@
         const backgroundVideo = document.getElementById('backgroundVideo');
         const backgroundCanvas = document.getElementById('backgroundCanvas');
         const backgroundCtx = backgroundCanvas ? backgroundCanvas.getContext('2d', { alpha: true }) : null;
-        
-        const backgroundVideoLeft = document.getElementById('backgroundVideoLeft');
-        const backgroundCanvasLeft = document.getElementById('backgroundCanvasLeft');
-        const backgroundCtxLeft = backgroundCanvasLeft ? backgroundCanvasLeft.getContext('2d', { alpha: true }) : null;
-        
-        const backgroundVideoRight = document.getElementById('backgroundVideoRight');
-        const backgroundCanvasRight = document.getElementById('backgroundCanvasRight');
-        const backgroundCtxRight = backgroundCanvasRight ? backgroundCanvasRight.getContext('2d', { alpha: true }) : null;
-        
         const backgroundWrapper = document.querySelector('.background-section-wrapper');
         const canvas = document.getElementById('animationCanvas');
         const ctx = canvas.getContext('2d', { alpha: true });
@@ -900,153 +868,60 @@
             }, { passive: true });
         }
 
-        // Инициализация фонового видео на canvas (общая функция)
-        function initializeBackgroundVideoElement(video, canvas, ctx, isCentered = false) {
-            if (!video || !canvas || !ctx) {
+        // Инициализация фонового видео на canvas
+        function initializeBackgroundVideo() {
+            if (!backgroundVideo || !backgroundCanvas || !backgroundCtx) {
                 return;
             }
 
             // Убеждаемся, что видео зациклено и без звука
-            video.loop = true;
-            video.muted = true;
-            video.playsInline = true;
+            backgroundVideo.loop = true;
+            backgroundVideo.muted = true;
+            backgroundVideo.playsInline = true;
 
-            let isPlaying = false;
-            let animationFrameId = null;
+            // Пытаемся запустить воспроизведение
+            const playPromise = backgroundVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // Автовоспроизведение заблокировано, попробуем запустить после загрузки
+                    backgroundVideo.addEventListener('loadeddata', () => {
+                        backgroundVideo.play().catch(() => {
+                            // Игнорируем ошибки автовоспроизведения
+                        });
+                    });
+                });
+            }
 
-            // Функция отрисовки кадра
-            function drawVideoFrame() {
-                if (video.readyState >= 2 && isPlaying) {
-                    // Очищаем canvas
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+            backgroundVideo.addEventListener('loadedmetadata', () => {
+                // Устанавливаем размер canvas равным размеру видео
+                backgroundCanvas.width = backgroundVideo.videoWidth;
+                backgroundCanvas.height = backgroundVideo.videoHeight;
+                
+                // Запускаем отрисовку кадров
+                function drawVideoFrame() {
+                    if (backgroundVideo.readyState >= 2) {
+                        // Очищаем canvas
+                        backgroundCtx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+                        
+                        // Рисуем текущий кадр видео
+                        backgroundCtx.drawImage(backgroundVideo, 0, 0);
+                        
+                        // Получаем данные пикселей
+                        const imageData = backgroundCtx.getImageData(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+                        
+                        // Обрабатываем пиксели для замены белого фона на прозрачность
+                        const processedData = processFrameData(imageData);
+                        
+                        // Применяем обработанные данные обратно на canvas
+                        backgroundCtx.putImageData(processedData, 0, 0);
+                    }
                     
-                    // Рисуем текущий кадр видео
-                    ctx.drawImage(video, 0, 0);
-                    
-                    // Получаем данные пикселей
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    
-                    // Обрабатываем пиксели для замены белого фона на прозрачность
-                    const processedData = processFrameData(imageData);
-                    
-                    // Применяем обработанные данные обратно на canvas
-                    ctx.putImageData(processedData, 0, 0);
+                    // Продолжаем отрисовку
+                    requestAnimationFrame(drawVideoFrame);
                 }
                 
-                // Продолжаем отрисовку только если видео играет
-                if (isPlaying) {
-                    animationFrameId = requestAnimationFrame(drawVideoFrame);
-                }
-            }
-
-            // Методы для управления воспроизведением
-            const cardData = {
-                video: video,
-                canvas: canvas,
-                start: () => {
-                    if (!isPlaying) {
-                        isPlaying = true;
-                        video.currentTime = 0;
-                        const playPromise = video.play();
-                        if (playPromise !== undefined) {
-                            playPromise.catch(error => {
-                                video.addEventListener('loadeddata', () => {
-                                    video.play().catch(() => {});
-                                });
-                            });
-                        }
-                        drawVideoFrame();
-                    }
-                },
-                stop: () => {
-                    if (isPlaying) {
-                        isPlaying = false;
-                        video.pause();
-                        if (animationFrameId) {
-                            cancelAnimationFrame(animationFrameId);
-                            animationFrameId = null;
-                        }
-                    }
-                }
-            };
-
-            video.addEventListener('loadedmetadata', () => {
-                // Устанавливаем размер canvas равным размеру видео
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+                drawVideoFrame();
             });
-
-            return cardData;
-        }
-
-        // Массив для хранения данных о карточках
-        const backgroundCards = [];
-
-        // Определение центральной карточки
-        function updateCenterCard() {
-            if (!backgroundWrapper) return;
-
-            const wrapperRect = backgroundWrapper.getBoundingClientRect();
-            const wrapperCenter = wrapperRect.left + wrapperRect.width / 2;
-
-            backgroundCards.forEach((cardData, index) => {
-                const cardRect = cardData.canvas.getBoundingClientRect();
-                const cardCenter = cardRect.left + cardRect.width / 2;
-                const distance = Math.abs(cardCenter - wrapperCenter);
-                const isCentered = distance < 50; // Порог для определения центра
-
-                if (isCentered && !cardData.isCentered) {
-                    // Карточка стала центральной
-                    cardData.isCentered = true;
-                    cardData.start();
-                } else if (!isCentered && cardData.isCentered) {
-                    // Карточка перестала быть центральной
-                    cardData.isCentered = false;
-                    cardData.stop();
-                }
-            });
-        }
-
-        // Обработчик скролла горизонтального контейнера
-        function setupHorizontalScrollHandler() {
-            if (!backgroundWrapper) return;
-
-            backgroundWrapper.addEventListener('scroll', () => {
-                updateCenterCard();
-            }, { passive: true });
-        }
-
-        // Инициализация всех фоновых видео
-        function initializeBackgroundVideo() {
-            const leftCard = initializeBackgroundVideoElement(backgroundVideoLeft, backgroundCanvasLeft, backgroundCtxLeft);
-            const centerCard = initializeBackgroundVideoElement(backgroundVideo, backgroundCanvas, backgroundCtx);
-            const rightCard = initializeBackgroundVideoElement(backgroundVideoRight, backgroundCanvasRight, backgroundCtxRight);
-
-            if (leftCard) {
-                leftCard.isCentered = false;
-                backgroundCards.push(leftCard);
-            }
-            if (centerCard) {
-                centerCard.isCentered = true; // Центральная карточка по умолчанию
-                backgroundCards.push(centerCard);
-            }
-            if (rightCard) {
-                rightCard.isCentered = false;
-                backgroundCards.push(rightCard);
-            }
-
-            // Запускаем анимацию для центральной карточки
-            if (centerCard) {
-                centerCard.start();
-            }
-
-            // Настраиваем обработчик горизонтального скролла
-            setupHorizontalScrollHandler();
-
-            // Первоначальная проверка центральной карточки
-            setTimeout(() => {
-                updateCenterCard();
-            }, 100);
         }
 
         // Инициализация (как в scroll-animation.html)
