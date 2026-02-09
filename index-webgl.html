@@ -1,0 +1,2113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnetic Scroll Effect - Animation Timeline</title>
+    <style>
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Thin.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Thin.woff") format("woff");
+            font-weight: 100;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Thin Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Thin Italic.woff") format("woff");
+            font-weight: 100;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Light.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Light.woff") format("woff");
+            font-weight: 300;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Light Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Light Italic.woff") format("woff");
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Regular.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Regular.woff") format("woff");
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Regular Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Regular Italic.woff") format("woff");
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Medium.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Medium.woff") format("woff");
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Medium Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Medium Italic.woff") format("woff");
+            font-weight: 500;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Bold.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Bold.woff") format("woff");
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Bold Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Bold Italic.woff") format("woff");
+            font-weight: 700;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Heavy.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Heavy.woff") format("woff");
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Heavy Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Heavy Italic.woff") format("woff");
+            font-weight: 800;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Black.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Black.woff") format("woff");
+            font-weight: 900;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Black Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Black Italic.woff") format("woff");
+            font-weight: 900;
+            font-style: italic;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #F2F2F2;
+            -webkit-tap-highlight-color: transparent;
+            font-family: "YS Text", Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Контейнер для скролла с snap */
+        .scroll-container {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory; /* Обязательный snap */
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Snap точки */
+        .snap-point {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            position: relative;
+        }
+        
+        /* Отключаем snap для всех snap-point когда позиция <= 88px */
+        .scroll-container.no-snap-cards .snap-point {
+            scroll-snap-align: none !important;
+            scroll-snap-stop: normal !important;
+        }
+
+        /* Навигационное меню */
+        .navigation {
+            position: sticky;
+            top: -56px;
+            height: 56px;
+            z-index: 100;
+            width: 100%;
+            background-color: #F2F2F2;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .navigation-phone {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navigation-phone-number {
+            font-size: 16px;
+            font-weight: 500;
+            color: #000;
+        }
+
+        .navigation-phone-dropdown {
+            width: 12px;
+            height: 12px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .navigation-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B9D, #9B59B6);
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .navigation-avatar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .navigation-avatar-icon {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .navigation-avatar-icon::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 50% 30%, #000 2px, transparent 2px),
+                radial-gradient(circle at 50% 50%, #000 2px, transparent 2px),
+                radial-gradient(circle at 50% 70%, #000 2px, transparent 2px);
+            background-size: 100% 33.33%;
+            background-repeat: no-repeat;
+        }
+
+        /* Пустота сверху - скрытая область */
+        .empty-space {
+            height: 50vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transform: translateY(56px);
+        }
+        
+        .empty-space-content {
+            margin-top: auto;
+            padding-bottom: 20px;
+            text-align: center;
+        }
+
+
+        .layout-container {
+            background-color: #F2F2F2;
+            margin: 0 auto;
+            width: 100%;
+            padding: 0 16px;
+            position: relative;
+        }
+
+        @media (max-width: 400px) {
+            .layout-container {
+                padding: 0 8px;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 16px;
+            margin: 10px 0;
+            position: relative;
+            
+        }
+
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #242424;
+            font-weight: 500;
+        }
+
+        .card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .card-inner {
+            background-color: white;
+            border-radius: inherit;
+            min-height: 100%;
+            padding: 16px;
+        }
+
+        .card-menu-only {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .card-menu-only .card-inner {
+            padding: 0;
+        }
+
+        /* Разворачиваемые карточки (стили из cards-demo) */
+        .card-collapsible {
+            --spring-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --spring-duration: 0.45s;
+            height: 80px;
+            overflow: hidden;
+            min-height: unset;
+            padding: 0;
+            transition: height var(--spring-duration) var(--spring-ease),
+                        border-radius var(--spring-duration) var(--spring-ease),
+                        margin 0.3s ease;
+        }
+
+        .card-collapsible:not(.expanded) + .card-collapsible:not(.expanded) {
+            margin-top: 1px;
+        }
+
+        .card-collapsible:not(.expanded):has(+ .card-collapsible:not(.expanded)) {
+            margin-bottom: 0;
+        }
+
+        .card-collapsible:not(.expanded):has(+ .card-collapsible:not(.expanded)) {
+            border-radius: 24px 24px 4px 4px;
+        }
+
+        .card-collapsible:not(.expanded) + .card-collapsible:not(.expanded) {
+            border-radius: 4px 4px 24px 24px;
+        }
+
+        .card-collapsible:not(.expanded) + .card-collapsible:not(.expanded):has(+ .card-collapsible:not(.expanded)) {
+            border-radius: 4px;
+        }
+
+        .card-collapsible .card-inner {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .card-collapsible .card-header {
+            position: relative;
+            overflow: hidden;
+            height: 80px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            flex-shrink: 0;
+            margin: 0;
+            border-radius: 0;
+            transition: margin 0.35s var(--spring-ease), border-radius 0.35s var(--spring-ease);
+        }
+
+        .card-header-title-wrapper {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-collapsible .card-header img {
+            margin-right: 4px;
+            flex-shrink: 0;
+        }
+
+        .card-header-phone {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: rgba(34, 34, 33, 0.5);
+            border-radius: 999px;
+            padding: 6px 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .card-header-phone-number {
+            font-size: 14px;
+            color: #ffffff;
+        }
+
+        .card-header-phone-copy {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .card-header .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0);
+            pointer-events: none;
+            animation: ripple-anim 0.6s ease-out forwards;
+        }
+
+        @keyframes ripple-anim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        .layout-container .card-collapsible:nth-child(1) .card-header {
+            background: #3A3A3A;
+        }
+
+        .layout-container .card-collapsible:nth-child(1) .card-header h2 {
+            color: #fff;
+        }
+
+        .layout-container .card-collapsible:nth-child(2) .card-header {
+            background: radial-gradient(131.95% 145.75% at 50% 50%, #F8D0FF 0%, #F5F4BA 100%);
+        }
+
+        .layout-container .card-collapsible:nth-child(3) .card-header {
+            background: #FFE88E;
+        }
+
+        .layout-container .card-collapsible:nth-child(4) .card-header {
+            background: linear-gradient(135deg, #b8d0e8 0%, #dce8f5 100%);
+        }
+
+        .card-collapsible.expanded .card-header {
+            margin: 8px 8px 0 8px;
+            border-radius: 16px;
+        }
+
+        .card-collapsible .card-header h2 {
+            margin: 0;
+
+            font-size: 16px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-shrink: 1;
+            min-width: 0;
+        }
+
+        .card-menu {
+            background-color: #F2F2F2;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .card-menu-item {
+            background: white;
+            height: 80px;
+            border-radius: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-menu-item:first-child {
+            border-radius: 0 0 4px 4px;
+        }
+
+        .card-menu-item:last-child {
+            border-radius: 4px 4px 0 0;
+            padding-bottom: 32px;
+            min-height: 80px;
+            height: auto;
+        }
+
+        .card-menu-item:first-child:last-child {
+            border-radius: 4px;
+        }
+
+        .card-menu-item:not(:first-child):not(:last-child) {
+            border-radius: 4px;
+        }
+
+        .card-menu-item .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.1);
+            transform: scale(0);
+            pointer-events: none;
+            animation: ripple-anim 0.6s ease-out forwards;
+        }
+
+        .card-menu-item-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #242424;
+            margin-bottom: 4px;
+        }
+
+        .card-menu-item-description {
+            font-size: 13px;
+            color: rgba(0, 0, 0, 0.50);
+            line-height: 1.4;
+        }
+
+        .card-collapsible {
+            border-radius: 24px;
+        }
+
+        #animationCanvas {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%) translateY(-14.5%) scale(0.4);
+            top: -82.5px;
+            background: transparent;
+            border: none;
+            z-index: 10;
+            filter: drop-shadow(2px 11px 5px rgba(175, 0, 0, 0.3));
+        }
+
+        .card-container {
+            position: relative;
+            min-height: 300px;
+            padding-top: 150px; /* Место для canvas */
+        }
+
+        .background-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            display: flex;
+            align-items: top;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .background-section-wrapper {
+            margin-top: 100px;
+            transition: transform .1s;
+        }
+
+        /* CSS Animation Timeline для современных браузеров */
+        /* Используем view-timeline для отслеживания позиции первой карточки */
+        #firstCard {
+            view-timeline-name: --card-position;
+            view-timeline-axis: block;
+        }
+
+        @supports (animation-timeline: view(--card-position)) {
+            .background-section-wrapper {
+                animation: backgroundMove linear;
+                animation-timeline: view(--card-position);
+                animation-range: entry 88px exit 493px;
+                /* Отключаем transition для браузеров с поддержкой animation-timeline */
+                transition: none;
+            }
+
+            @keyframes backgroundMove {
+                /* Когда карточка на 88px (начало range) */
+                0% {
+                    transform: translateY(100vh);
+                }
+                /* Когда карточка на 493px (конец range) */
+                100% {
+                    transform: translateY(0vh);
+                }
+            }
+        }
+
+        /* Fallback для браузеров с scroll() но без view() */
+        @supports (animation-timeline: scroll()) and not (animation-timeline: view()) {
+            .background-section-wrapper {
+                animation: backgroundMoveScroll linear;
+                animation-timeline: scroll(root);
+                /* Примерный расчет: empty-space (50vh) + 88px до начала карточки */
+                animation-range: calc(50vh + 88px) calc(50vh + 493px);
+                transition: none;
+            }
+
+            @keyframes backgroundMoveScroll {
+                0% {
+                    transform: translateY(100vh);
+                }
+                100% {
+                    transform: translateY(0vh);
+                }
+            }
+        }
+
+        .background-section video {
+            display: none; /* Скрываем оригинальное видео */
+        }
+
+        .background-section canvas {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            object-position: center;
+            opacity: 1;
+        }
+
+        /* Контейнер для карточек с отступами; canvas позиционируется относительно него */
+        .cards-wrapper {
+            position: relative;
+            padding-top: 0;
+            overflow: visible;
+        }
+        
+        /* Убираем margin-top у первой карточки, так как отступ уже в snap-point */
+        .layout-container > .card:first-of-type {
+            margin-top: 0;
+        }
+
+        .debug-info {
+            opacity: 0;
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            font-family: monospace;
+            font-size: 14px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="background-section">
+        <div class="background-section-wrapper">
+            <video id="backgroundVideo" src="6cccfa21f50c11f0b1b012d53b0fb308.mp4" autoplay loop muted playsinline></video>
+            <canvas id="backgroundCanvas"></canvas>
+        </div>
+    </div>
+    
+    <div class="scroll-container" id="scrollContainer">
+        <!-- Пустота сверху - скрытая область, которая появляется при скролле вверх -->
+        <div class="snap-point empty-space" id="emptySpace">
+            <!-- Навигационное меню внутри empty-space -->
+            <div class="navigation">
+                <div class="navigation-phone">
+                    <span class="navigation-phone-number"></span>
+                    
+                </div>
+                <div class="navigation-avatar">
+                    <div class="navigation-avatar-inner">
+                        <div class="navigation-avatar-icon"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="empty-space-content">
+                
+            </div>
+        </div>
+        
+        <!-- Snap точка для нормального состояния - первая карточка на 32px + 56px (навигация) = 88px -->
+        <div class="snap-point snap-point-normal" style="height: 88px;"></div>
+        
+        <!-- Контейнер с карточками -->
+        <div class="cards-wrapper">
+            <canvas id="animationCanvas"></canvas>
+            <div class="layout-container">
+                <div class="card card-collapsible" id="firstCard">
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <div class="card-header-title-wrapper">
+                                <img src="i1.svg" alt="">
+                                <h2>Секретный</h2>
+                            </div>
+                            <div class="card-header-phone">
+                                <span class="card-header-phone-number">+7 (929) 747-78-70</span>
+                                <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
+                            </div>
+                        </div>
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 3</div>
+                                <div class="card-menu-item-description">Описание пункта меню 3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-collapsible">
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <div class="card-header-title-wrapper">
+                                <img src="i2.svg" alt="">
+                                <h2>Основной</h2>
+                            </div>
+                            <div class="card-header-phone">
+                                <span class="card-header-phone-number">+7 (929) 747-78-70</span>
+                                <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
+                            </div>
+                        </div>
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-collapsible">
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <div class="card-header-title-wrapper">
+                                <img src="i3.svg" alt="">
+                                <h2>Beeline</h2>
+                            </div>
+                            <div class="card-header-phone">
+                                <span class="card-header-phone-number">+7 (929) 747-78-70</span>
+                                <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
+                            </div>
+                        </div>
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 3</div>
+                                <div class="card-menu-item-description">Описание пункта меню 3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-collapsible">
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <div class="card-header-title-wrapper">
+                                <img src="i3.svg" alt="">
+                                <h2>Для путешествий</h2>
+                            </div>
+                            <div class="card-header-phone">
+                                <span class="card-header-phone-number">+7 (929) 747-78-70</span>
+                                <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
+                            </div>
+                        </div>
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-menu-only" id="secondCard">
+                    <div class="card-inner">
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 3</div>
+                                <div class="card-menu-item-description">Описание пункта меню 3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-menu-only">
+                    <div class="card-inner">
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-menu-only">
+                    <div class="card-inner">
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 3</div>
+                                <div class="card-menu-item-description">Описание пункта меню 3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Snap точка для позиционирования второй карточки на 450px -->
+        <div class="snap-point snap-point-second" style="height: calc(450px - 16px - 370px - 16px);"></div>
+    </div>
+
+    <div class="debug-info">
+        <span id="scrollYDebug">scrollY: 0px</span>
+        <span id="cardTopDebug">Card top: 0px</span>
+        <span id="snapPointDebug">Snap point: -</span>
+        <span id="scrollDirectionDebug">Scroll direction: -</span>
+        <span id="currentFrameDebug">Current frame: 0</span>
+        <span id="animationDirectionDebug">Animation direction: -</span>
+        <span id="timelineSupportDebug">Timeline support: -</span>
+    </div>
+
+    <script>
+        (function() {
+            function createRipple(header, x, y) {
+                var ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                var size = Math.max(header.offsetWidth, header.offsetHeight) * 0.6;
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (x - header.getBoundingClientRect().left - size / 2) + 'px';
+                ripple.style.top = (y - header.getBoundingClientRect().top - size / 2) + 'px';
+                header.appendChild(ripple);
+                ripple.addEventListener('animationend', function() { ripple.remove(); });
+            }
+            document.querySelectorAll('.card-collapsible .card-header').forEach(function(header) {
+                header.addEventListener('click', function(e) {
+                    var x = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : e.clientX);
+                    var y = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : e.clientY);
+                    if (x != null && y != null) createRipple(this, x, y);
+                    var card = this.closest('.card-collapsible');
+                    if (card.classList.contains('expanded')) {
+                        card.style.height = '80px';
+                        card.classList.remove('expanded');
+                        card.addEventListener('transitionend', function onEnd(e) {
+                            if (e.propertyName !== 'height') return;
+                            card.removeEventListener('transitionend', onEnd);
+                            card.style.height = '';
+                        }, { once: true });
+                    } else {
+                        card.classList.add('expanded');
+                        card.offsetHeight; // reflow: применить margin хедера до чтения scrollHeight
+                        var targetHeight = card.scrollHeight;
+                        // У первой карточки (только хедер) scrollHeight может остаться 80 из-за overflow — задаём минимум
+                        if (targetHeight <= 80) targetHeight = 88;
+                        card.style.height = '80px';
+                        card.offsetHeight;
+                        card.style.height = targetHeight + 'px';
+                    }
+                });
+            });
+
+            // Ripple эффект для card-menu-item
+            document.querySelectorAll('.card-menu-item').forEach(function(menuItem) {
+                menuItem.addEventListener('click', function(e) {
+                    var x = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : e.clientX);
+                    var y = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : e.clientY);
+                    if (x != null && y != null) createRipple(this, x, y);
+                });
+            });
+        })();
+
+        const scrollContainer = document.getElementById('scrollContainer');
+        const scrollYDebug = document.getElementById('scrollYDebug');
+        const cardTopDebug = document.getElementById('cardTopDebug');
+        const snapPointDebug = document.getElementById('snapPointDebug');
+        const scrollDirectionDebug = document.getElementById('scrollDirectionDebug');
+        const currentFrameDebug = document.getElementById('currentFrameDebug');
+        const animationDirectionDebug = document.getElementById('animationDirectionDebug');
+        const timelineSupportDebug = document.getElementById('timelineSupportDebug');
+        const firstCard = document.getElementById('firstCard');
+        const emptySpace = document.getElementById('emptySpace');
+        const backgroundVideo = document.getElementById('backgroundVideo');
+        const backgroundCanvas = document.getElementById('backgroundCanvas');
+        const backgroundCtx = backgroundCanvas ? backgroundCanvas.getContext('2d', { alpha: true }) : null;
+        const backgroundWrapper = document.querySelector('.background-section-wrapper');
+        let canvas = document.getElementById('animationCanvas');
+        const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false });
+        if (!gl) {
+            console.warn('WebGL not available, falling back to 2D');
+        }
+
+        // WebGL: шейдеры и программа для спрайта с color-key прозрачностью
+        const spriteVS = `
+            attribute vec2 a_position;
+            attribute vec2 a_uv;
+            uniform float u_offsetY;
+            uniform float u_canvasWidth;
+            uniform float u_canvasHeight;
+            uniform float u_frameWidth;
+            uniform float u_frameHeight;
+            varying vec2 v_uv;
+            void main() {
+                v_uv = a_uv;
+                float pixelX = a_position.x * u_frameWidth;
+                float pixelY = u_offsetY + a_position.y * u_frameHeight;
+                float ndcX = 2.0 * pixelX / u_canvasWidth - 1.0;
+                float ndcY = 1.0 - 2.0 * pixelY / u_canvasHeight;
+                gl_Position = vec4(ndcX, ndcY, 0.0, 1.0);
+            }
+        `;
+        const spriteFS = `
+            precision mediump float;
+            varying vec2 v_uv;
+            uniform sampler2D u_texture;
+            uniform float u_alpha;
+            uniform float u_frameU0;
+            uniform float u_frameU1;
+            uniform float u_tileU0;  // Начало кадра в тайле (0.0-1.0)
+            uniform float u_tileU1;  // Конец кадра в тайле (0.0-1.0)
+            uniform bool u_useTiles; // Использовать тайлы или нет
+            void main() {
+                float u, v;
+                if (u_useTiles) {
+                    // Используем координаты тайла
+                    u = u_tileU0 + v_uv.x * (u_tileU1 - u_tileU0);
+                    v = 1.0 - v_uv.y;
+                } else {
+                    // Используем старую логику для одной текстуры
+                    u = u_frameU0 + v_uv.x * (u_frameU1 - u_frameU0);
+                    v = 1.0 - v_uv.y;
+                }
+                vec4 c = texture2D(u_texture, vec2(u, v));
+                vec3 rgb = c.rgb;
+                if (length(rgb) < 0.02) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+                    return;
+                }
+                float d1 = distance(rgb, vec3(1.0, 1.0, 1.0));
+                float d2 = distance(rgb, vec3(0.922, 0.914, 0.906));
+                
+                // Используем плавный переход с увеличенным порогом для устранения белого контура
+                // Увеличиваем порог для захвата большего количества граничных пикселей
+                float threshold = 0.5;
+                float fadeStart = threshold * 0.7; // Начало затухания (40% от порога) - более раннее начало
+                float fadeEnd = threshold; // Конец затухания (100% порога)
+                
+                float alpha = c.a * u_alpha;
+                float fade = 1.0;
+                
+                // Вычисляем fade для белого цвета с более плавным переходом
+                if (d1 < threshold) {
+                    float fadeValue = smoothstep(fadeStart, fadeEnd, d1);
+                    fade = min(fade, fadeValue);
+                }
+                
+                // Вычисляем fade для светло-серого цвета (берем минимальное значение)
+                if (d2 < threshold) {
+                    float fadeValue = smoothstep(fadeStart, fadeEnd, d2);
+                    fade = min(fade, fadeValue);
+                }
+                
+                alpha *= fade;
+                
+                // Если alpha стал очень маленьким, делаем полностью прозрачным
+                if (alpha < 0.005) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+                } else {
+                    gl_FragColor = vec4(rgb, alpha);
+                }
+            }
+        `;
+        const maskVS = `
+            attribute vec2 a_position;
+            void main() {
+                gl_Position = vec4(2.0 * a_position.x - 1.0, 1.0 - 2.0 * a_position.y, 0.0, 1.0);
+            }
+        `;
+        const maskFS = `
+            precision mediump float;
+            void main() {
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+        `;
+
+        let spriteProgram = null;
+        let maskProgram = null;
+        let spriteTexture = null; // Для обратной совместимости (fallback)
+        let spriteTextureTiles = []; // Массив тайлов текстур
+        let tileInfo = null; // Информация о тайлах: { tilesPerRow, totalTiles, framesPerTile }
+        let quadBuffer = null;
+        let uvBuffer = null;
+
+        function compileShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error(gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        function createProgram(gl, vsSource, fsSource) {
+            const vs = compileShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fs = compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
+            if (!vs || !fs) return null;
+            const program = gl.createProgram();
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error(gl.getProgramInfoLog(program));
+                return null;
+            }
+            return program;
+        }
+
+        function initWebGL() {
+            if (!gl) return false;
+            spriteProgram = createProgram(gl, spriteVS, spriteFS);
+            maskProgram = createProgram(gl, maskVS, maskFS);
+            if (!spriteProgram || !maskProgram) return false;
+            quadBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0, 1,0, 0,1, 0,1, 1,0, 1,1]), gl.STATIC_DRAW);
+            uvBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0, 1,0, 0,1, 0,1, 1,0, 1,1]), gl.STATIC_DRAW);
+            return true;
+        }
+
+        let useWebGL = gl && initWebGL();
+        let ctx = canvas.getContext('2d', { alpha: true });
+
+        // Проверка поддержки animation-timeline
+        function supportsAnimationTimeline() {
+            // Проверяем поддержку view() и scroll()
+            return CSS.supports('animation-timeline', 'view()') ||
+                   CSS.supports('animation-timeline', 'scroll()') ||
+                   CSS.supports('-webkit-animation-timeline', 'view()') ||
+                   CSS.supports('-webkit-animation-timeline', 'scroll()');
+        }
+
+        const hasAnimationTimelineSupport = supportsAnimationTimeline();
+        timelineSupportDebug.textContent = `Timeline support: ${hasAnimationTimelineSupport ? 'yes' : 'no (using JS fallback)'}`;
+
+        // Параметры спрайта
+        let spriteSheet = null;
+        let frameWidth = 0;
+        let frameHeight = 0;
+        let totalFramesCount = 0;
+        let videoFPS = 30;
+
+        // Позиции для управления анимацией (как в scroll-animation.html)
+        const CARD_POSITION_FIRST_FRAME = 80;   // При этой позиции или меньше - первый кадр (0)
+        const CARD_POSITION_LAST_FRAME = 200;  // При этой позиции или больше - последний кадр
+
+        // Состояние анимации
+        let currentFrame = 0;
+        let targetFrame = 0;
+        let isAnimating = false;
+        let lastFrameTime = 0;
+        let animationId = null;
+        let lastScrollY = 0;
+        let scrollSpeed = 0;
+        let lastScrollTime = Date.now();
+        let isScrollingDown = false;
+        const MAX_FRAME_DOWN = 28; // Максимальный кадр при скролле вверх
+        let isSlidingDown = false; // Флаг для анимации смещения вниз
+        let slideStartTime = 0;
+        const SLIDE_DURATION = 700; // 0.7 секунды для смещения вниз
+        
+        // Эффект time echo отключен
+
+        // Цвета для прозрачности
+        const transparentColors = [
+            { r: 235, g: 233, b: 231 }, // #EBE9E7
+            { r: 255, g: 255, b: 255 }  // #FFF
+        ];
+        
+        // Пороги для разных canvas
+        const animationCanvasThreshold = 300;  // Для animationCanvas (увеличено для лучшего захвата граничных пикселей)
+        const backgroundCanvasThreshold = 50; // Для backgroundCanvas
+
+        // Функция для проверки, является ли цвет "прозрачным"
+        function shouldBeTransparent(r, g, b, threshold) {
+            return transparentColors.some(color => {
+                return Math.abs(r - color.r) <= threshold &&
+                       Math.abs(g - color.g) <= threshold &&
+                       Math.abs(b - color.b) <= threshold;
+            });
+        }
+
+        // Функция для обработки кадра и создания прозрачности
+        function processFrameData(imageData, threshold) {
+            const data = imageData.data;
+            const usedThreshold = threshold !== undefined ? threshold : animationCanvasThreshold;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                
+                if (shouldBeTransparent(r, g, b, usedThreshold)) {
+                    data[i + 3] = 0; // alpha
+                }
+            }
+            
+            return imageData;
+        }
+
+        // Функция для получения обработанного изображения кадра
+        function getProcessedFrameImage(frameIndex) {
+            if (!spriteSheet || frameIndex < 0 || frameIndex >= totalFramesCount) {
+                return null;
+            }
+            
+            const sourceX = frameIndex * frameWidth;
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = frameWidth;
+            tempCanvas.height = frameHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            tempCtx.drawImage(
+                spriteSheet,
+                sourceX, 0, frameWidth, frameHeight,
+                0, 0, frameWidth, frameHeight
+            );
+            
+            const imageData = tempCtx.getImageData(0, 0, frameWidth, frameHeight);
+            return processFrameData(imageData, animationCanvasThreshold);
+        }
+
+        function drawFrameWebGL(frameIndex, offsetY) {
+            const hasTiles = spriteTextureTiles.length > 0 && tileInfo;
+            const hasSingleTexture = spriteTexture !== null;
+            
+            if (!gl || !spriteProgram || (!hasTiles && !hasSingleTexture) || frameWidth === 0 || frameHeight === 0) {
+                if (!gl) console.warn('WebGL context not available');
+                if (!spriteProgram) console.warn('Sprite program not initialized');
+                if (!hasTiles && !hasSingleTexture) console.warn(`No textures available: hasTiles=${hasTiles}, hasSingleTexture=${hasSingleTexture}, tilesCount=${spriteTextureTiles.length}`);
+                if (frameWidth === 0 || frameHeight === 0) console.warn(`Invalid frame size: ${frameWidth}x${frameHeight}`);
+                return;
+            }
+            const now = performance.now();
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clearColor(0, 0, 0, 0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+            function drawSpriteQuad(frameIdx, offset, alpha) {
+                gl.useProgram(spriteProgram);
+                
+                // Получаем location uniform'ов один раз
+                const uOffsetYLoc = gl.getUniformLocation(spriteProgram, 'u_offsetY');
+                const uCanvasWidthLoc = gl.getUniformLocation(spriteProgram, 'u_canvasWidth');
+                const uCanvasHeightLoc = gl.getUniformLocation(spriteProgram, 'u_canvasHeight');
+                const uFrameWidthLoc = gl.getUniformLocation(spriteProgram, 'u_frameWidth');
+                const uFrameHeightLoc = gl.getUniformLocation(spriteProgram, 'u_frameHeight');
+                const uAlphaLoc = gl.getUniformLocation(spriteProgram, 'u_alpha');
+                const uFrameU0Loc = gl.getUniformLocation(spriteProgram, 'u_frameU0');
+                const uFrameU1Loc = gl.getUniformLocation(spriteProgram, 'u_frameU1');
+                const uTileU0Loc = gl.getUniformLocation(spriteProgram, 'u_tileU0');
+                const uTileU1Loc = gl.getUniformLocation(spriteProgram, 'u_tileU1');
+                const uUseTilesLoc = gl.getUniformLocation(spriteProgram, 'u_useTiles');
+                const uTextureLoc = gl.getUniformLocation(spriteProgram, 'u_texture');
+
+                gl.uniform1f(uOffsetYLoc, offset);
+                gl.uniform1f(uCanvasWidthLoc, canvas.width);
+                gl.uniform1f(uCanvasHeightLoc, canvas.height);
+                gl.uniform1f(uFrameWidthLoc, frameWidth);
+                gl.uniform1f(uFrameHeightLoc, frameHeight);
+                gl.uniform1f(uAlphaLoc, alpha);
+
+                let textureToUse = null;
+                let useTiles = false;
+                let tileU0 = 0, tileU1 = 1;
+                let frameU0 = 0, frameU1 = 1;
+
+                if (hasTiles) {
+                    // Используем тайлы
+                    const tileInfoForFrame = getTileInfoForFrame(frameIdx);
+                    if (!tileInfoForFrame || !tileInfoForFrame.texture) {
+                        console.warn(`No tile info for frame ${frameIdx}`);
+                        return;
+                    }
+                    
+                    textureToUse = tileInfoForFrame.texture;
+                    useTiles = true;
+                    
+                    // Вычисляем UV координаты внутри тайла
+                    const frameInTile = tileInfoForFrame.frameInTile;
+                    const tileIndex = tileInfoForFrame.tileIndex;
+                    
+                    // Получаем реальную ширину тайла из метаданных
+                    let tileWidth;
+                    if (tileInfo.tilesMetadata && tileInfo.tilesMetadata[tileIndex]) {
+                        // Используем реальную ширину из метаданных
+                        tileWidth = tileInfo.tilesMetadata[tileIndex].width;
+                    } else {
+                        // Fallback: используем framesPerTile
+                        tileWidth = tileInfo.framesPerTile * frameWidth;
+                    }
+                    
+                    tileU0 = (frameInTile * frameWidth) / tileWidth;
+                    tileU1 = ((frameInTile + 1) * frameWidth) / tileWidth;
+                    
+                    gl.uniform1f(uTileU0Loc, tileU0);
+                    gl.uniform1f(uTileU1Loc, tileU1);
+                    gl.uniform1f(uFrameU0Loc, 0); // Не используется при тайлах
+                    gl.uniform1f(uFrameU1Loc, 1); // Не используется при тайлах
+                } else {
+                    // Используем одну текстуру (старая логика)
+                    textureToUse = spriteTexture;
+                    useTiles = false;
+                    
+                    frameU0 = frameIdx / totalFramesCount;
+                    frameU1 = (frameIdx + 1) / totalFramesCount;
+                    
+                    gl.uniform1f(uFrameU0Loc, frameU0);
+                    gl.uniform1f(uFrameU1Loc, frameU1);
+                    gl.uniform1f(uTileU0Loc, 0); // Не используется
+                    gl.uniform1f(uTileU1Loc, 1); // Не используется
+                }
+                
+                gl.uniform1i(uUseTilesLoc, useTiles ? 1 : 0);
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, textureToUse);
+                gl.uniform1i(uTextureLoc, 0);
+                
+                gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+                const posLoc = gl.getAttribLocation(spriteProgram, 'a_position');
+                gl.enableVertexAttribArray(posLoc);
+                gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+                gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+                const uvLoc = gl.getAttribLocation(spriteProgram, 'a_uv');
+                gl.enableVertexAttribArray(uvLoc);
+                gl.vertexAttribPointer(uvLoc, 2, gl.FLOAT, false, 0, 0);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+            }
+
+            // Отрисовываем только текущий кадр (time echo отключен)
+            drawSpriteQuad(frameIndex, offsetY, 1);
+
+            if (offsetY > 0) {
+                gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+                gl.useProgram(maskProgram);
+                const rectY = canvas.height / 2 + 31;
+                const rectHeight = canvas.height / 2 - 31;
+                const y0 = rectY / canvas.height;
+                const y1 = (rectY + rectHeight) / canvas.height;
+                const maskVerts = new Float32Array([0, y0, 1, y0, 0, y1, 0, y1, 1, y0, 1, y1]);
+                const maskBuf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, maskBuf);
+                gl.bufferData(gl.ARRAY_BUFFER, maskVerts, gl.STATIC_DRAW);
+                const posLoc = gl.getAttribLocation(maskProgram, 'a_position');
+                gl.enableVertexAttribArray(posLoc);
+                gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                gl.deleteBuffer(maskBuf);
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            }
+        }
+
+        // Функция для отрисовки кадра (2D fallback, time echo отключен)
+        function drawFrame2D(frameIndex, offsetY) {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const currentImageData = getProcessedFrameImage(frameIndex);
+            if (currentImageData) {
+                ctx.putImageData(currentImageData, 0, offsetY);
+            }
+            if (offsetY > 0) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+                ctx.fillRect(0, canvas.height / 2 + 31, canvas.width, canvas.height / 2 - 31);
+                ctx.globalCompositeOperation = 'source-over';
+            }
+        }
+
+        function drawFrame(frameIndex, offsetY = 0) {
+            const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
+            const hasWebGLSingle = useWebGL && spriteTexture !== null;
+            const hasWebGL = hasWebGLTiles || hasWebGLSingle;
+            
+            if (!hasWebGL && !spriteSheet) return;
+            if (frameIndex < 0 || frameIndex >= totalFramesCount) return;
+            if (hasWebGL) {
+                drawFrameWebGL(frameIndex, offsetY);
+            } else {
+                drawFrame2D(frameIndex, offsetY);
+            }
+        }
+
+        function createSpriteTexture(gl, image) {
+            if (!image || !image.width || !image.height) return null;
+            const maxSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+            if (image.width > maxSize || image.height > maxSize) {
+                return null;
+            }
+            const tex = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+            try {
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            } catch (e) {
+                gl.deleteTexture(tex);
+                return null;
+            }
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            return tex;
+        }
+
+        // Создание тайлов из длинной текстуры
+        function createTextureTiles(gl, image, frameWidth, frameHeight, totalFrames) {
+            if (!image || !image.width || !image.height || !frameWidth || !frameHeight) {
+                return null;
+            }
+
+            const maxSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+            console.log('Max texture size:', maxSize);
+            
+            // Вычисляем, сколько кадров поместится в один тайл
+            const framesPerTile = Math.floor(maxSize / frameWidth);
+            if (framesPerTile < 1) {
+                console.error('Frame width too large for texture tiles');
+                return null;
+            }
+
+            // Вычисляем количество тайлов
+            const totalTiles = Math.ceil(totalFrames / framesPerTile);
+            
+            console.log(`Creating ${totalTiles} tiles, ${framesPerTile} frames per tile`);
+
+            const tiles = [];
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+
+            for (let tileIndex = 0; tileIndex < totalTiles; tileIndex++) {
+                const startFrame = tileIndex * framesPerTile;
+                const endFrame = Math.min(startFrame + framesPerTile, totalFrames);
+                const framesInTile = endFrame - startFrame;
+                const tileWidth = framesInTile * frameWidth;
+                const tileHeight = frameHeight;
+
+                // Проверяем, что тайл не превышает лимит
+                if (tileWidth > maxSize || tileHeight > maxSize) {
+                    console.error(`Tile ${tileIndex} too large: ${tileWidth}x${tileHeight}`);
+                    return null;
+                }
+
+                // Создаем canvas для тайла
+                tempCanvas.width = tileWidth;
+                tempCanvas.height = tileHeight;
+                tempCtx.clearRect(0, 0, tileWidth, tileHeight);
+
+                // Копируем кадры из исходного изображения в тайл
+                for (let f = 0; f < framesInTile; f++) {
+                    const frameIndex = startFrame + f;
+                    const sourceX = frameIndex * frameWidth;
+                    const destX = f * frameWidth;
+                    tempCtx.drawImage(
+                        image,
+                        sourceX, 0, frameWidth, frameHeight,
+                        destX, 0, frameWidth, frameHeight
+                    );
+                }
+
+                // Создаем текстуру из canvas
+                const tex = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, tex);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+                try {
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tempCanvas);
+                } catch (e) {
+                    console.error(`Failed to create tile ${tileIndex}:`, e);
+                    gl.deleteTexture(tex);
+                    // Очищаем уже созданные тайлы
+                    tiles.forEach(t => gl.deleteTexture(t));
+                    return null;
+                }
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+                tiles.push(tex);
+            }
+
+            return {
+                tiles: tiles,
+                framesPerTile: framesPerTile,
+                totalTiles: totalTiles
+            };
+        }
+
+        // Получение информации о тайле для конкретного кадра
+        function getTileInfoForFrame(frameIndex) {
+            if (!tileInfo) {
+                console.warn('tileInfo not initialized');
+                return null;
+            }
+            if (frameIndex < 0 || frameIndex >= totalFramesCount) {
+                console.warn(`Frame index ${frameIndex} out of range [0, ${totalFramesCount})`);
+                return null;
+            }
+            const tileIndex = Math.floor(frameIndex / tileInfo.framesPerTile);
+            const frameInTile = frameIndex % tileInfo.framesPerTile;
+            
+            if (tileIndex >= spriteTextureTiles.length) {
+                console.warn(`Tile index ${tileIndex} out of range [0, ${spriteTextureTiles.length})`);
+                return null;
+            }
+            
+            const texture = spriteTextureTiles[tileIndex];
+            if (!texture) {
+                console.warn(`Texture for tile ${tileIndex} is null`);
+                return null;
+            }
+            
+            return {
+                tileIndex: tileIndex,
+                frameInTile: frameInTile,
+                texture: texture
+            };
+        }
+
+        // Загрузка предварительно созданных тайлов
+        async function loadPreparedTiles(tilesMetadataPath = 'tiles_metadata.json') {
+            try {
+                const tilesMetadataResponse = await fetch(tilesMetadataPath);
+                const tilesMetadata = await tilesMetadataResponse.json();
+                
+                const originalMetadata = tilesMetadata.original_metadata;
+                frameWidth = originalMetadata.frame_width;
+                frameHeight = originalMetadata.frame_height;
+                totalFramesCount = originalMetadata.frame_count;
+                videoFPS = originalMetadata.fps;
+                
+                const tilesInfo = tilesMetadata.tiles_info;
+                const tilesDir = tilesMetadata.tiles_directory || 'tiles';
+                const framesPerTile = tilesInfo.frames_per_tile;
+                const totalTiles = tilesInfo.total_tiles;
+                
+                console.log(`Loading ${totalTiles} pre-prepared tiles from ${tilesDir}/`);
+                
+                // Загружаем все тайлы
+                const tilePromises = tilesInfo.tiles.map((tile, index) => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => {
+                            const tex = createSpriteTexture(gl, img);
+                            if (tex) {
+                                resolve({ index: tile.tile_index, texture: tex });
+                            } else {
+                                reject(new Error(`Failed to create texture for tile ${tile.tile_index}`));
+                            }
+                        };
+                        img.onerror = () => reject(new Error(`Failed to load tile ${tile.filename}`));
+                        img.src = `${tilesDir}/${tile.filename}`;
+                    });
+                });
+                
+                const loadedTiles = await Promise.all(tilePromises);
+                
+                // Сортируем тайлы по индексу и сохраняем
+                loadedTiles.sort((a, b) => a.index - b.index);
+                spriteTextureTiles = loadedTiles.map(t => t.texture);
+                
+                // Создаем массив метаданных тайлов, отсортированный по индексу
+                const sortedTilesMetadata = tilesInfo.tiles.sort((a, b) => a.tile_index - b.tile_index);
+                
+                tileInfo = {
+                    framesPerTile: framesPerTile,
+                    totalTiles: totalTiles,
+                    tilesMetadata: sortedTilesMetadata // Сохраняем метаданные о каждом тайле
+                };
+                
+                console.log(`Tile info initialized: ${tileInfo.totalTiles} tiles, ${tileInfo.framesPerTile} frames per tile`);
+                
+                console.log(`Successfully loaded ${spriteTextureTiles.length} texture tiles`);
+                
+                canvas.width = frameWidth;
+                canvas.height = frameHeight;
+                canvas.style.top = '-82.5px';
+                
+                currentFrame = 0;
+                drawFrame(0, 0);
+                
+                // Инициализируем анимацию после загрузки тайлов
+                if (firstCard) {
+                    const cardTop = Math.round(firstCard.getBoundingClientRect().top);
+                    targetFrame = calculateTargetFrame(cardTop);
+                    currentFrame = targetFrame;
+                    console.log(`Initial frame setup: cardTop=${cardTop}, targetFrame=${targetFrame}, currentFrame=${currentFrame}`);
+                    drawFrame(Math.floor(currentFrame), 0);
+                    
+                    // Запускаем анимацию
+                    console.log('Calling updateAnimation after tiles loaded');
+                    updateAnimation(cardTop);
+                } else {
+                    // Если карточка еще не готова, устанавливаем начальный кадр и запускаем анимацию позже
+                    targetFrame = 0;
+                    currentFrame = 0;
+                    console.log('firstCard not ready, will start animation later');
+                    // Анимация запустится через setupScrollHandler
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to load prepared tiles:', error);
+                return false;
+            }
+        }
+
+        // Загрузка спрайта (fallback на создание тайлов на лету или одну текстуру)
+        async function loadSprite(spritePath = 'sprite.png', metadataPath = 'sprite_metadata.json') {
+            try {
+                // Сначала пытаемся загрузить предварительно созданные тайлы
+                if (useWebGL && gl) {
+                    const tilesLoaded = await loadPreparedTiles();
+                    if (tilesLoaded) {
+                        return; // Успешно загрузили тайлы
+                    }
+                    console.log('Prepared tiles not found, trying to create from sprite...');
+                }
+                
+                // Fallback: загружаем оригинальный спрайт
+                const metadataResponse = await fetch(metadataPath);
+                const metadata = await metadataResponse.json();
+                
+                frameWidth = metadata.frame_width;
+                frameHeight = metadata.frame_height;
+                totalFramesCount = metadata.frame_count;
+                videoFPS = metadata.fps;
+                
+                const spriteImage = new Image();
+                spriteImage.crossOrigin = 'anonymous';
+                
+                await new Promise((resolve, reject) => {
+                    spriteImage.onload = () => {
+                        if (useWebGL && gl) {
+                            // Сначала пытаемся создать одну текстуру (для маленьких спрайтов)
+                            spriteTexture = createSpriteTexture(gl, spriteImage);
+                            
+                            if (!spriteTexture) {
+                                // Если не получилось - создаем тайлы на лету
+                                console.log('Texture too large, creating tiles on the fly...');
+                                const tilesResult = createTextureTiles(gl, spriteImage, frameWidth, frameHeight, totalFramesCount);
+                                
+                                if (tilesResult && tilesResult.tiles.length > 0) {
+                                    spriteTextureTiles = tilesResult.tiles;
+                                    tileInfo = {
+                                        framesPerTile: tilesResult.framesPerTile,
+                                        totalTiles: tilesResult.totalTiles
+                                    };
+                                    console.log(`Successfully created ${tilesResult.totalTiles} texture tiles`);
+                                } else {
+                                    // Если и тайлы не получились - fallback на 2D
+                                    console.warn('Failed to create texture tiles, falling back to 2D');
+                                    useWebGL = false;
+                                    spriteSheet = spriteImage;
+                                    var oldCanvas = canvas;
+                                    canvas = document.createElement('canvas');
+                                    canvas.id = oldCanvas.id;
+                                    canvas.className = oldCanvas.className;
+                                    canvas.style.cssText = oldCanvas.style.cssText;
+                                    if (oldCanvas.parentNode) {
+                                        oldCanvas.parentNode.replaceChild(canvas, oldCanvas);
+                                    }
+                                    ctx = canvas.getContext('2d', { alpha: true });
+                                }
+                            } else {
+                                console.log('Single texture created successfully');
+                            }
+                        }
+                        if (!useWebGL) {
+                            spriteSheet = spriteImage;
+                        }
+                        
+                        canvas.width = frameWidth;
+                        canvas.height = frameHeight;
+                        
+                        canvas.style.top = '-82.5px';
+                        
+                        currentFrame = 0;
+                        drawFrame(0, 0);
+                        
+                        if (firstCard) {
+                            const cardTop = Math.round(firstCard.getBoundingClientRect().top);
+                            targetFrame = calculateTargetFrame(cardTop);
+                            currentFrame = targetFrame;
+                            drawFrame(Math.floor(currentFrame), 0);
+                        }
+                        
+                        resolve();
+                    };
+                    spriteImage.onerror = reject;
+                    spriteImage.src = spritePath;
+                });
+            } catch (error) {
+                console.error('Error loading sprite:', error);
+            }
+        }
+
+        // Анимация - плавный переход к целевому кадру
+        function animate(timestamp) {
+            if (!isAnimating) {
+                animationId = null;
+                return;
+            }
+            
+            const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
+            const hasWebGLSingle = useWebGL && spriteTexture !== null;
+            const hasWebGL = hasWebGLTiles || hasWebGLSingle;
+            
+            // Проверяем, что есть текстуры для отрисовки
+            if ((!hasWebGL && !spriteSheet) || totalFramesCount === 0) {
+                console.warn('animate: No textures available or no frames');
+                animationId = null;
+                return;
+            }
+            
+            const now = performance.now();
+            let deltaTime = 0;
+            
+            if (lastFrameTime > 0) {
+                deltaTime = (now - lastFrameTime) / 1000;
+                deltaTime = Math.min(deltaTime, 0.1);
+            } else {
+                lastFrameTime = now;
+                deltaTime = 0.016;
+            }
+            
+            const animationSpeedMultiplier = calculateAnimationSpeed(scrollSpeed);
+            const transitionSpeed = videoFPS * animationSpeedMultiplier;
+            const maxFrameChange = deltaTime * transitionSpeed;
+            
+            const diff = targetFrame - currentFrame;
+            
+            // Если скроллим вверх и достигли 28 кадра - запускаем смещение вниз (но продолжаем анимацию)
+            if (!isScrollingDown && Math.floor(currentFrame) >= MAX_FRAME_DOWN && !isSlidingDown) {
+                // Запускаем анимацию смещения кадров вниз, но не останавливаем основную анимацию
+                startSlideDown();
+            }
+            
+            // Если идет смещение вниз - продолжаем анимацию, но смещение обрабатывается отдельно
+            // (смещение применяется в drawFrame через offsetY)
+            
+            if (Math.abs(diff) < 0.01) {
+                currentFrame = targetFrame;
+                isAnimating = false;
+                // Применяем смещение, если идет анимация slide down
+                const offsetToApply = isSlidingDown ? currentSlideOffset : 0;
+                drawFrame(Math.floor(currentFrame), offsetToApply);
+                
+                animationId = null;
+                return;
+            }
+            
+            if (diff > 0) {
+                currentFrame = Math.min(currentFrame + maxFrameChange, targetFrame);
+            } else {
+                currentFrame = Math.max(currentFrame - maxFrameChange, targetFrame);
+            }
+            
+            const frameToDraw = Math.max(0, Math.min(Math.floor(currentFrame), totalFramesCount - 1));
+            // Применяем смещение, если идет анимация slide down
+            const offsetToApply = isSlidingDown ? currentSlideOffset : 0;
+            drawFrame(frameToDraw, offsetToApply);
+            
+            lastFrameTime = now;
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Вычисление целевого кадра на основе позиции карточки
+        function calculateTargetFrame(cardTop) {
+            // Используем стандартную логику для всех направлений скролла
+            const distToFirst = Math.abs(cardTop - CARD_POSITION_FIRST_FRAME);
+            const distToLast = Math.abs(cardTop - CARD_POSITION_LAST_FRAME);
+            
+            if (distToFirst <= distToLast) {
+                return 0;
+            } else {
+                return totalFramesCount - 1;
+            }
+        }
+
+        // Новая функция для вычисления целевого кадра при первоначальной позиции
+        function calculateTargetFrameAtInitialPosition() {
+            const currentFrameIndex = Math.floor(currentFrame);
+            
+            // Если анимация не на 1 кадре - проигрываем до первого кадра (кадр 0)
+            if (currentFrameIndex > 0) {
+                return 0; // Проигрывать до 1 кадра (кадр 0)
+            }
+            
+            // Если уже на 1 кадре - возвращаем 0 (останавливаем)
+            return 0;
+        }
+
+        // Обновление целевого кадра и запуск анимации
+        function updateAnimation(cardTop) {
+            const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
+            const hasWebGLSingle = useWebGL && spriteTexture !== null;
+            const hasWebGL = hasWebGLTiles || hasWebGLSingle;
+            
+            // Проверяем, что есть текстуры для отрисовки
+            if ((!hasWebGL && !spriteSheet) || totalFramesCount === 0) {
+                console.warn('updateAnimation: No textures available or no frames');
+                return;
+            }
+            
+            // Если идет смещение вниз - не обновляем анимацию кадров
+            if (isSlidingDown) {
+                return;
+            }
+            
+            const INITIAL_CARD_POSITION = 88; // Первоначальное положение карточки
+            
+            // Проверяем, находится ли карточка в первоначальной позиции (88px и меньше)
+            const isAtInitialPosition = cardTop <= INITIAL_CARD_POSITION;
+            
+            let newTargetFrame;
+            
+            if (isAtInitialPosition) {
+                // Если карточка в первоначальной позиции - используем новую логику
+                newTargetFrame = calculateTargetFrameAtInitialPosition();
+            } else {
+                // Иначе используем стандартную логику
+                newTargetFrame = calculateTargetFrame(cardTop);
+            }
+            
+            // Если целевой кадр изменился или анимация не запущена - обновляем и запускаем
+            if (Math.abs(newTargetFrame - targetFrame) > 0.01 || !isAnimating) {
+                targetFrame = newTargetFrame;
+                console.log(`updateAnimation: Setting targetFrame=${targetFrame}, isAnimating=${isAnimating}`);
+                
+                if (!isAnimating) {
+                    isAnimating = true;
+                    lastFrameTime = 0;
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                    }
+                    console.log('Starting animation loop');
+                    requestAnimationFrame(animate);
+                }
+            }
+            
+            // Если карточка в первоначальной позиции и достигли 1 кадра - останавливаем анимацию
+            if (isAtInitialPosition && Math.abs(currentFrame - 0) < 0.01 && Math.abs(targetFrame - 0) < 0.01) {
+                isAnimating = false;
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                
+            }
+        }
+
+        // Функция для вычисления множителя скорости анимации
+        function calculateAnimationSpeed(scrollSpeedValue) {
+            // Всегда возвращаем 3x скорость (увеличено на 1x)
+            return 3;
+        }
+
+        // Текущее смещение для анимации slide down
+        let currentSlideOffset = 0;
+        
+        // Запуск анимации смещения кадров вниз внутри canvas
+        function startSlideDown() {
+            if (isSlidingDown) return;
+            
+            isSlidingDown = true;
+            slideStartTime = performance.now();
+            currentSlideOffset = 0;
+            
+            // Анимация смещения будет применяться в drawFrame через currentSlideOffset
+            // Обновляем смещение в отдельном цикле
+            function updateSlideOffset() {
+                if (!isSlidingDown) return;
+                
+                const now = performance.now();
+                const elapsed = now - slideStartTime;
+                const progress = Math.min(elapsed / SLIDE_DURATION, 1);
+                
+                // Линейное смещение без ускорения
+                // Вычисляем смещение вниз (до самого низа canvas)
+                const maxOffset = canvas.height; // Смещаем до самого низа canvas
+                currentSlideOffset = maxOffset * progress;
+                
+                if (progress >= 1) {
+                    // Анимация завершена
+                    isSlidingDown = false;
+                    currentSlideOffset = maxOffset;
+                    return;
+                }
+                
+                requestAnimationFrame(updateSlideOffset);
+            }
+            
+            requestAnimationFrame(updateSlideOffset);
+        }
+
+        // Переменная для отслеживания предыдущей позиции скролла в updateDebugInfo
+        let lastDebugScrollY = 0;
+
+        // Обновление debug информации
+        function updateDebugInfo() {
+            const scrollY = scrollContainer.scrollTop;
+            scrollYDebug.textContent = `scrollY: ${Math.round(scrollY)}px`;
+            
+            // Всегда показываем позицию первой карточки
+            if (firstCard) {
+                const firstCardTop = firstCard.getBoundingClientRect().top;
+                cardTopDebug.textContent = `Card 1 top: ${Math.round(firstCardTop)}px`;
+            }
+            
+            const emptySpaceHeight = emptySpace ? emptySpace.offsetHeight : window.innerHeight / 2;
+            if (scrollY < emptySpaceHeight) {
+                snapPointDebug.textContent = `Snap point: empty`;
+            } else {
+                snapPointDebug.textContent = `Snap point: normal`;
+            }
+            
+            // Определяем направление скролла по изменению scrollY
+            let scrollDirection = '-';
+            if (scrollY > lastDebugScrollY) {
+                scrollDirection = 'down';
+            } else if (scrollY < lastDebugScrollY) {
+                scrollDirection = 'up';
+            }
+            scrollDirectionDebug.textContent = `Scroll direction: ${scrollDirection}`;
+            lastDebugScrollY = scrollY;
+            
+            // Текущий кадр анимации
+            const currentFrameIndex = Math.floor(currentFrame);
+            currentFrameDebug.textContent = `Current frame: ${currentFrameIndex}`;
+            
+            // Направление анимации
+            let animationDirection = '-';
+            if (isAnimating && totalFramesCount > 0) {
+                if (currentFrame < targetFrame) {
+                    animationDirection = 'forward';
+                    } else if (currentFrame > targetFrame) {
+                    animationDirection = 'backward';
+                } else {
+                    animationDirection = 'stopped';
+                }
+            } else if (!isAnimating) {
+                animationDirection = 'stopped';
+            }
+            animationDirectionDebug.textContent = `Animation direction: ${animationDirection}`;
+        }
+
+        // Обновление позиции background-section по позиции первой карточки (всегда через JS для надёжности)
+        let backgroundUpdateFrameId = null;
+        function updateBackgroundPosition() {
+            if (!backgroundWrapper || !firstCard) {
+                if (backgroundUpdateFrameId) {
+                    cancelAnimationFrame(backgroundUpdateFrameId);
+                    backgroundUpdateFrameId = null;
+                }
+                return;
+            }
+
+            const cardTop = firstCard.getBoundingClientRect().top;
+            const minCardPosition = 88; // Минимальная позиция карточки
+            const maxCardPosition = 250; // Фон уже в финальной позиции, когда карточка на 250px — выезжает быстрее
+            const minTranslateY = 0; // Когда карточка на maxCardPosition и ниже — background-section вверху
+            const maxTranslateY = 100; // Когда карточка на 88px и выше — background-section внизу (100vh)
+            
+            let translateY;
+            if (cardTop <= minCardPosition) {
+                // Если карточка на 88px или меньше - background-section внизу
+                translateY = maxTranslateY;
+            } else if (cardTop >= maxCardPosition) {
+                // Если карточка на 493px или больше - background-section вверху
+                translateY = minTranslateY;
+            } else {
+                // Интерполяция между min и max в диапазоне 88px - 493px
+                const progress = (cardTop - minCardPosition) / (maxCardPosition - minCardPosition);
+                translateY = maxTranslateY - (maxTranslateY - minTranslateY) * progress;
+            }
+            
+            backgroundWrapper.style.transform = `translateY(${translateY}vh)`;
+            
+            // Продолжаем обновление в следующем кадре
+            backgroundUpdateFrameId = requestAnimationFrame(updateBackgroundPosition);
+        }
+
+        // Обработчик скролла (как в scroll-animation.html)
+        function setupScrollHandler() {
+            scrollContainer.addEventListener('scroll', () => {
+                if (!firstCard) return;
+                
+                const cardTop = firstCard.getBoundingClientRect().top;
+                const currentScrollY = scrollContainer.scrollTop;
+                const now = Date.now();
+                
+                // Определяем направление скролла
+                isScrollingDown = currentScrollY > lastScrollY;
+                
+                // Вычисляем скорость скролла
+                const timeDelta = (now - lastScrollTime) / 1000; // в секундах
+                const scrollDelta = currentScrollY - lastScrollY;
+                
+                if (timeDelta > 0) {
+                    scrollSpeed = Math.abs(scrollDelta / timeDelta); // пикселей в секунду
+                } else {
+                    scrollSpeed = 0;
+                }
+                
+                lastScrollY = currentScrollY;
+                lastScrollTime = now;
+                
+                // Управление snap для карточек
+                const INITIAL_CARD_POSITION = 88; // Первоначальное положение карточки
+                
+                // Если позиция карточки 88px или меньше - отключаем snap для карточек
+                if (cardTop <= INITIAL_CARD_POSITION) {
+                    scrollContainer.classList.add('no-snap-cards');
+                } else {
+                    scrollContainer.classList.remove('no-snap-cards');
+                }
+                
+                // Обновляем debug информацию сразу после определения направления
+                updateDebugInfo();
+                
+                // Проверка: если карточка вернулась в первоначальное положение (88px и меньше), а анимация не запущена - принудительно запускаем
+                // Проверяем, что карточка в исходном положении (88px и меньше)
+                const isAtInitialPositionForAnim = cardTop <= INITIAL_CARD_POSITION;
+                
+                // Если карточка в исходном положении и анимация не активна или остановилась
+                const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
+                const hasWebGLSingle = useWebGL && spriteTexture !== null;
+                const hasWebGL = hasWebGLTiles || hasWebGLSingle;
+                
+                if (isAtInitialPositionForAnim && (spriteSheet || hasWebGL) && totalFramesCount > 0) {
+                    const currentFrameIndex = Math.floor(currentFrame);
+                    
+                    // Если анимация не на 1 кадре - проигрываем до первого кадра
+                    if (currentFrameIndex > 0) {
+                        const newTargetFrame = 0;
+                        const needsUpdate = !isAnimating || Math.abs(targetFrame - newTargetFrame) > 0.01 || Math.abs(currentFrame - newTargetFrame) > 0.01;
+                        
+                        if (needsUpdate) {
+                            targetFrame = newTargetFrame;
+                            
+                            if (!isAnimating) {
+                                isAnimating = true;
+                                lastFrameTime = 0;
+                                if (animationId) {
+                                    cancelAnimationFrame(animationId);
+                                }
+                                requestAnimationFrame(animate);
+                            }
+                        }
+                    } else {
+                        // Если уже на 1 кадре - останавливаем анимацию
+                        if (isAnimating) {
+                            isAnimating = false;
+                            if (animationId) {
+                                cancelAnimationFrame(animationId);
+                                animationId = null;
+                            }
+                            
+                        }
+                    }
+                }
+                
+                // Обновляем анимацию на основе позиции карточки (как в scroll-animation.html)
+                updateAnimation(cardTop);
+            }, { passive: true });
+        }
+
+        // Инициализация фонового видео на canvas
+        function initializeBackgroundVideo() {
+            if (!backgroundVideo || !backgroundCanvas || !backgroundCtx) {
+                return;
+            }
+
+            // Убеждаемся, что видео зациклено и без звука
+            backgroundVideo.loop = true;
+            backgroundVideo.muted = true;
+            backgroundVideo.playsInline = true;
+
+            // Пытаемся запустить воспроизведение
+            const playPromise = backgroundVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // Автовоспроизведение заблокировано, попробуем запустить после загрузки
+                    backgroundVideo.addEventListener('loadeddata', () => {
+                        backgroundVideo.play().catch(() => {
+                            // Игнорируем ошибки автовоспроизведения
+                        });
+                    });
+                });
+            }
+
+            backgroundVideo.addEventListener('loadedmetadata', () => {
+                // Устанавливаем размер canvas равным размеру видео
+                backgroundCanvas.width = backgroundVideo.videoWidth;
+                backgroundCanvas.height = backgroundVideo.videoHeight;
+                
+                // Запускаем отрисовку кадров
+                function drawVideoFrame() {
+                    if (backgroundVideo.readyState >= 2) {
+                        // Очищаем canvas
+                        backgroundCtx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+                        
+                        // Рисуем текущий кадр видео
+                        backgroundCtx.drawImage(backgroundVideo, 0, 0);
+                        
+                        // Получаем данные пикселей
+                        const imageData = backgroundCtx.getImageData(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+                        
+                        // Обрабатываем пиксели для замены белого фона на прозрачность
+                        const processedData = processFrameData(imageData, backgroundCanvasThreshold);
+                        
+                        // Применяем обработанные данные обратно на canvas
+                        backgroundCtx.putImageData(processedData, 0, 0);
+                    }
+                    
+                    // Продолжаем отрисовку
+                    requestAnimationFrame(drawVideoFrame);
+                }
+                
+                drawVideoFrame();
+            });
+        }
+
+        // Инициализация (как в scroll-animation.html)
+        function initialize() {
+            // Настраиваем обработчик скролла
+            setupScrollHandler();
+            
+            // Инициализируем фоновое видео
+            initializeBackgroundVideo();
+            
+            // Запускаем обновление позиции фона по позиции первой карточки (всегда через JS)
+            updateBackgroundPosition();
+            
+            // Устанавливаем начальную позицию - нормальное состояние (минуя пустоту)
+            requestAnimationFrame(() => {
+                const emptySpaceHeight = emptySpace ? emptySpace.offsetHeight : window.innerHeight / 2;
+                scrollContainer.scrollTop = emptySpaceHeight;
+                
+                // Устанавливаем начальный кадр на основе позиции карточки (как в scroll-animation.html)
+                const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
+                const hasWebGLSingle = useWebGL && spriteTexture !== null;
+                const hasWebGL = hasWebGLTiles || hasWebGLSingle;
+                
+                if (firstCard && (spriteSheet || hasWebGL)) {
+                    const cardTop = Math.round(firstCard.getBoundingClientRect().top);
+                    targetFrame = calculateTargetFrame(cardTop);
+                    currentFrame = targetFrame;
+                    drawFrame(Math.floor(currentFrame), 0);
+                }
+                
+                updateDebugInfo();
+            });
+            
+            // Обновляем debug информацию периодически
+            setInterval(updateDebugInfo, 100);
+            
+            // Загружаем спрайт
+            loadSprite().catch(error => {
+                // Ошибка при загрузке спрайта
+            });
+        }
+
+        // Запускаем при загрузке
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
+    </script>
+</body>
+</html>
