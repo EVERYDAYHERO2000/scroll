@@ -862,6 +862,10 @@
                     var y = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : e.clientY);
                     if (x != null && y != null) createRipple(this, x, y);
                     var card = this.closest('.card-collapsible');
+                    
+                    // Проверяем, является ли это первой карточкой
+                    const isFirstCard = card.id === 'firstCard' || card === firstCard;
+                    
                     if (card.classList.contains('expanded')) {
                         card.style.height = '80px';
                         card.classList.remove('expanded');
@@ -879,6 +883,26 @@
                         card.style.height = '80px';
                         card.offsetHeight;
                         card.style.height = targetHeight + 'px';
+                        
+                        // Если это первая карточка - запускаем анимацию от первого до последнего кадра
+                        if (isFirstCard && totalFramesCount > 0) {
+                            // Блокируем реакцию на скролл
+                            isScrollBlocked = true;
+                            
+                            // Устанавливаем целевой кадр на последний
+                            targetFrame = totalFramesCount - 1;
+                            currentFrame = 0; // Начинаем с первого кадра
+                            
+                            // Запускаем анимацию
+                            if (!isAnimating) {
+                                isAnimating = true;
+                                lastFrameTime = 0;
+                                if (animationId) {
+                                    cancelAnimationFrame(animationId);
+                                }
+                                requestAnimationFrame(animate);
+                            }
+                        }
                     }
                 });
             });
@@ -1095,6 +1119,7 @@
         let isSlidingDown = false; // Флаг для анимации смещения вниз
         let slideStartTime = 0;
         const SLIDE_DURATION = 700; // 0.7 секунды для смещения вниз
+        let isScrollBlocked = false; // Флаг блокировки реакции анимации на скролл
         
         // Эффект time echo отключен
 
@@ -1681,6 +1706,13 @@
             
             if (Math.abs(diff) < 0.01) {
                 currentFrame = targetFrame;
+                
+                // Если анимация была заблокирована и достигли последнего кадра - разблокируем
+                if (isScrollBlocked && Math.floor(currentFrame) >= totalFramesCount - 1) {
+                    isScrollBlocked = false;
+                    console.log('Animation completed, scroll unblocked');
+                }
+                
                 isAnimating = false;
                 // Применяем смещение, если идет анимация slide down
                 const offsetToApply = isSlidingDown ? currentSlideOffset : 0;
@@ -1740,6 +1772,11 @@
             // Проверяем, что есть текстуры для отрисовки
             if ((!hasWebGL && !spriteSheet) || totalFramesCount === 0) {
                 console.warn('updateAnimation: No textures available or no frames');
+                return;
+            }
+            
+            // Если анимация заблокирована (проигрывается по клику) - не обновляем
+            if (isScrollBlocked) {
                 return;
             }
             
@@ -1960,49 +1997,55 @@
                 updateDebugInfo();
                 
                 // Проверка: если карточка вернулась в первоначальное положение (88px и меньше), а анимация не запущена - принудительно запускаем
-                // Проверяем, что карточка в исходном положении (88px и меньше)
-                const isAtInitialPositionForAnim = cardTop <= INITIAL_CARD_POSITION;
-                
-                // Если карточка в исходном положении и анимация не активна или остановилась
-                const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
-                const hasWebGLSingle = useWebGL && spriteTexture !== null;
-                const hasWebGL = hasWebGLTiles || hasWebGLSingle;
-                
-                if (isAtInitialPositionForAnim && (spriteSheet || hasWebGL) && totalFramesCount > 0) {
-                    const currentFrameIndex = Math.floor(currentFrame);
+                // Но только если анимация не заблокирована (не проигрывается по клику)
+                if (!isScrollBlocked) {
+                    // Проверяем, что карточка в исходном положении (88px и меньше)
+                    const isAtInitialPositionForAnim = cardTop <= INITIAL_CARD_POSITION;
                     
-                    // Если анимация не на 1 кадре - проигрываем до первого кадра
-                    if (currentFrameIndex > 0) {
-                        const newTargetFrame = 0;
-                        const needsUpdate = !isAnimating || Math.abs(targetFrame - newTargetFrame) > 0.01 || Math.abs(currentFrame - newTargetFrame) > 0.01;
+                    // Если карточка в исходном положении и анимация не активна или остановилась
+                    const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
+                    const hasWebGLSingle = useWebGL && spriteTexture !== null;
+                    const hasWebGL = hasWebGLTiles || hasWebGLSingle;
+                    
+                    if (isAtInitialPositionForAnim && (spriteSheet || hasWebGL) && totalFramesCount > 0) {
+                        const currentFrameIndex = Math.floor(currentFrame);
                         
-                        if (needsUpdate) {
-                            targetFrame = newTargetFrame;
+                        // Если анимация не на 1 кадре - проигрываем до первого кадра
+                        if (currentFrameIndex > 0) {
+                            const newTargetFrame = 0;
+                            const needsUpdate = !isAnimating || Math.abs(targetFrame - newTargetFrame) > 0.01 || Math.abs(currentFrame - newTargetFrame) > 0.01;
                             
-                            if (!isAnimating) {
-                                isAnimating = true;
-                                lastFrameTime = 0;
+                            if (needsUpdate) {
+                                targetFrame = newTargetFrame;
+                                
+                                if (!isAnimating) {
+                                    isAnimating = true;
+                                    lastFrameTime = 0;
+                                    if (animationId) {
+                                        cancelAnimationFrame(animationId);
+                                    }
+                                    requestAnimationFrame(animate);
+                                }
+                            }
+                        } else {
+                            // Если уже на 1 кадре - останавливаем анимацию
+                            if (isAnimating) {
+                                isAnimating = false;
                                 if (animationId) {
                                     cancelAnimationFrame(animationId);
+                                    animationId = null;
                                 }
-                                requestAnimationFrame(animate);
+                                
                             }
-                        }
-                    } else {
-                        // Если уже на 1 кадре - останавливаем анимацию
-                        if (isAnimating) {
-                            isAnimating = false;
-                            if (animationId) {
-                                cancelAnimationFrame(animationId);
-                                animationId = null;
-                            }
-                            
                         }
                     }
                 }
                 
                 // Обновляем анимацию на основе позиции карточки (как в scroll-animation.html)
-                updateAnimation(cardTop);
+                // Но только если анимация не заблокирована (не проигрывается по клику)
+                if (!isScrollBlocked) {
+                    updateAnimation(cardTop);
+                }
             }, { passive: true });
         }
 
