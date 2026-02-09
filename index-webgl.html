@@ -516,6 +516,12 @@
             border: none;
             z-index: 10;
             filter: drop-shadow(2px 11px 5px rgba(175, 0, 0, 0.3));
+            opacity: 0; /* Скрыт до загрузки всех кадров */
+            transition: opacity 0.3s ease;
+        }
+        
+        #animationCanvas.loaded {
+            opacity: 1;
         }
 
         .card-container {
@@ -561,7 +567,7 @@
             @keyframes backgroundMove {
                 /* Когда карточка на 88px (начало range) */
                 0% {
-                    transform: translateY(100vh);
+                    transform: translateY(50vh);
                 }
                 /* Когда карточка на 493px (конец range) */
                 100% {
@@ -582,7 +588,7 @@
 
             @keyframes backgroundMoveScroll {
                 0% {
-                    transform: translateY(100vh);
+                    transform: translateY(50vh);
                 }
                 100% {
                     transform: translateY(0vh);
@@ -886,6 +892,30 @@
                         
                         // Если это первая карточка - запускаем анимацию от первого до последнего кадра
                         if (isFirstCard && totalFramesCount > 0) {
+                            const currentFrameIndex = Math.floor(currentFrame);
+                            const isAtLastFrame = currentFrameIndex >= totalFramesCount - 1;
+                            
+                            // Условие 2.1: Если анимация находится в последнем кадре, не запускаем анимацию
+                            if (isAtLastFrame) {
+                                return; // Не воспроизводим анимацию
+                            }
+                            
+                            // Проверяем, находится ли карточка в первоначальном положении
+                            const cardTop = firstCard.getBoundingClientRect().top;
+                            const INITIAL_CARD_POSITION = 88;
+                            const isAtInitialPosition = cardTop <= INITIAL_CARD_POSITION;
+                            
+                            // Условие 2.2: Если карточка не в первоначальном положении, не запускаем анимацию
+                            if (!isAtInitialPosition) {
+                                return; // Не воспроизводим анимацию
+                            }
+                            
+                            // Условие 2: Анимация должна быть на первом кадре для запуска
+                            const isAtFirstFrame = currentFrameIndex === 0;
+                            if (!isAtFirstFrame) {
+                                return; // Не воспроизводим анимацию, если не на первом кадре
+                            }
+                            
                             // Блокируем реакцию на скролл
                             isScrollBlocked = true;
                             
@@ -1115,11 +1145,19 @@
         let scrollSpeed = 0;
         let lastScrollTime = Date.now();
         let isScrollingDown = false;
+        let lastScrollDirection = null; // Предыдущее направление скролла (true = вниз, false = вверх, null = неизвестно)
         const MAX_FRAME_DOWN = 28; // Максимальный кадр при скролле вверх
         let isSlidingDown = false; // Флаг для анимации смещения вниз
         let slideStartTime = 0;
         const SLIDE_DURATION = 700; // 0.7 секунды для смещения вниз
         let isScrollBlocked = false; // Флаг блокировки реакции анимации на скролл
+        let isDirectionChangeHandled = false; // Флаг обработки изменения направления скролла
+        
+        // Флаги для управления начальной анимацией
+        let hasUserInteracted = false; // Пользователь взаимодействовал со страницей
+        let initialAnimationPlayed = false; // Начальная анимация была проиграна
+        let isInitialAnimationPlaying = false; // Идет начальная анимация
+        const INITIAL_CARD_POSITION = 88; // Первоначальное положение карточки
         
         // Эффект time echo отключен
 
@@ -1541,27 +1579,25 @@
                 canvas.height = frameHeight;
                 canvas.style.top = '-82.5px';
                 
-                currentFrame = 0;
-                drawFrame(0, 0);
+                // Показываем canvas после загрузки всех кадров
+                canvas.classList.add('loaded');
                 
-                // Инициализируем анимацию после загрузки тайлов
-                if (firstCard) {
-                    const cardTop = Math.round(firstCard.getBoundingClientRect().top);
-                    targetFrame = calculateTargetFrame(cardTop);
-                    currentFrame = targetFrame;
-                    console.log(`Initial frame setup: cardTop=${cardTop}, targetFrame=${targetFrame}, currentFrame=${currentFrame}`);
-                    drawFrame(Math.floor(currentFrame), 0);
-                    
-                    // Запускаем анимацию
-                    console.log('Calling updateAnimation after tiles loaded');
-                    updateAnimation(cardTop);
-                } else {
-                    // Если карточка еще не готова, устанавливаем начальный кадр и запускаем анимацию позже
-                    targetFrame = 0;
-                    currentFrame = 0;
-                    console.log('firstCard not ready, will start animation later');
-                    // Анимация запустится через setupScrollHandler
-                }
+                // Устанавливаем начальный кадр на последний
+                currentFrame = totalFramesCount - 1;
+                targetFrame = totalFramesCount - 1;
+                drawFrame(Math.floor(currentFrame), 0);
+                
+                // Запускаем начальную анимацию (от последнего до первого кадра)
+                // Условие 1.1: если пользователь уже взаимодействовал, проверяем позицию карточки
+                setTimeout(() => {
+                    if (hasUserInteracted) {
+                        // Пользователь взаимодействовал - проверяем позицию карточки
+                        checkAndStartInitialAnimation();
+                    } else {
+                        // Пользователь не взаимодействовал - запускаем сразу
+                        startInitialAnimation();
+                    }
+                }, 100);
                 
                 return true;
             } catch (error) {
@@ -1640,15 +1676,25 @@
                         
                         canvas.style.top = '-82.5px';
                         
-                        currentFrame = 0;
-                        drawFrame(0, 0);
+                        // Показываем canvas после загрузки всех кадров
+                        canvas.classList.add('loaded');
                         
-                        if (firstCard) {
-                            const cardTop = Math.round(firstCard.getBoundingClientRect().top);
-                            targetFrame = calculateTargetFrame(cardTop);
-                            currentFrame = targetFrame;
-                            drawFrame(Math.floor(currentFrame), 0);
-                        }
+                        // Устанавливаем начальный кадр на последний
+                        currentFrame = totalFramesCount - 1;
+                        targetFrame = totalFramesCount - 1;
+                        drawFrame(Math.floor(currentFrame), 0);
+                        
+                        // Запускаем начальную анимацию (от последнего до первого кадра)
+                        // Условие 1.1: если пользователь уже взаимодействовал, проверяем позицию карточки
+                        setTimeout(() => {
+                            if (hasUserInteracted) {
+                                // Пользователь взаимодействовал - проверяем позицию карточки
+                                checkAndStartInitialAnimation();
+                            } else {
+                                // Пользователь не взаимодействовал - запускаем сразу
+                                startInitialAnimation();
+                            }
+                        }, 100);
                         
                         resolve();
                     };
@@ -1706,6 +1752,15 @@
             
             if (Math.abs(diff) < 0.01) {
                 currentFrame = targetFrame;
+                
+                // Обработка завершения начальной анимации
+                // Анимация завершается когда достигли кадра 0 (визуально кадр 1)
+                // Проигрываем от кадра totalFramesCount-1 (визуально кадр totalFramesCount) до кадра 0 (визуально кадр 1)
+                if (isInitialAnimationPlaying && Math.floor(currentFrame) === 0 && targetFrame === 0) {
+                    isInitialAnimationPlaying = false;
+                    initialAnimationPlayed = true;
+                    console.log(`Initial animation completed: played from frame ${totalFramesCount} (index ${totalFramesCount - 1}) to frame 1 (index 0)`);
+                }
                 
                 // Если анимация была заблокирована и достигли последнего кадра - разблокируем
                 if (isScrollBlocked && Math.floor(currentFrame) >= totalFramesCount - 1) {
@@ -1780,6 +1835,11 @@
                 return;
             }
             
+            // Если идет начальная анимация - не обновляем
+            if (isInitialAnimationPlaying) {
+                return;
+            }
+            
             // Если идет смещение вниз - не обновляем анимацию кадров
             if (isSlidingDown) {
                 return;
@@ -1798,6 +1858,20 @@
             } else {
                 // Иначе используем стандартную логику
                 newTargetFrame = calculateTargetFrame(cardTop);
+            }
+            
+            // Если изменение направления было обработано - не переопределяем targetFrame
+            if (isDirectionChangeHandled) {
+                return;
+            }
+            
+            // Проверяем, находится ли анимация на последнем кадре
+            const currentFrameIndex = Math.floor(currentFrame);
+            const isAtLastFrame = currentFrameIndex >= totalFramesCount - 1;
+            
+            // Если анимация на последнем кадре и скроллим вверх (targetFrame будет меньше текущего) - не запускаем анимацию
+            if (isAtLastFrame && !isScrollingDown && newTargetFrame < currentFrameIndex) {
+                return; // Не воспроизводим анимацию при скролле вверх, если уже на последнем кадре
             }
             
             // Если целевой кадр изменился или анимация не запущена - обновляем и запускаем
@@ -1831,6 +1905,87 @@
         function calculateAnimationSpeed(scrollSpeedValue) {
             // Всегда возвращаем 3x скорость (увеличено на 1x)
             return 3;
+        }
+        
+        // Функция для запуска начальной анимации (от последнего до первого кадра)
+        function startInitialAnimation() {
+            if (totalFramesCount === 0) {
+                console.warn('startInitialAnimation: No frames loaded yet');
+                return;
+            }
+            
+            const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
+            const hasWebGLSingle = useWebGL && spriteTexture !== null;
+            const hasWebGL = hasWebGLTiles || hasWebGLSingle;
+            
+            if ((!hasWebGL && !spriteSheet)) {
+                console.warn('startInitialAnimation: Textures not ready yet');
+                return;
+            }
+            
+            console.log('Starting initial animation from last to first frame');
+            
+            // Сбрасываем смещение вниз при запуске начальной анимации
+            isSlidingDown = false;
+            currentSlideOffset = 0;
+            
+            isInitialAnimationPlaying = true;
+            // Для анимации от последнего к первому кадру:
+            // currentFrame должен быть больше targetFrame (например, 95 > 0)
+            // Это даст отрицательный diff, и анимация пойдет назад
+            // Кадры нумеруются с 0, поэтому:
+            // - Кадр 95 (индекс) = кадр 96 (визуально, если всего 96 кадров)
+            // - Кадр 0 (индекс) = кадр 1 (визуально)
+            currentFrame = totalFramesCount - 1; // Начинаем с последнего кадра (95 = визуально 96)
+            targetFrame = 0; // Целевой кадр - первый (0 = визуально 1)
+            
+            // Останавливаем любую текущую анимацию перед запуском новой
+            if (isAnimating && animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            isAnimating = true;
+            lastFrameTime = 0;
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // Функция для проверки, находится ли карточка в первоначальном положении
+        function isCardAtInitialPosition() {
+            if (!firstCard) return false;
+            const cardTop = Math.round(firstCard.getBoundingClientRect().top);
+            return cardTop <= INITIAL_CARD_POSITION;
+        }
+        
+        // Функция для проверки возможности запуска начальной анимации
+        function checkAndStartInitialAnimation() {
+            // Условие 1.1: Если пользователь взаимодействовал, проверяем позицию карточки
+            // Анимация не должна проигрываться пока карточка не вернется в исходное положение
+            if (hasUserInteracted && !initialAnimationPlayed && !isInitialAnimationPlaying) {
+                if (isCardAtInitialPosition()) {
+                    // Карточка вернулась в исходное положение - можно запускать начальную анимацию
+                    startInitialAnimation();
+                }
+            }
+        }
+        
+        // Отслеживание взаимодействия пользователя
+        function setupUserInteractionTracking() {
+            // Отслеживаем любые взаимодействия пользователя
+            const interactionEvents = ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll', 'click'];
+            let interactionTimeout;
+            
+            interactionEvents.forEach(eventType => {
+                document.addEventListener(eventType, () => {
+                    hasUserInteracted = true;
+                    
+                    // Проверяем возможность запуска начальной анимации после взаимодействия
+                    clearTimeout(interactionTimeout);
+                    interactionTimeout = setTimeout(() => {
+                        checkAndStartInitialAnimation();
+                    }, 100);
+                }, { once: false, passive: true });
+            });
         }
 
         // Текущее смещение для анимации slide down
@@ -1869,6 +2024,34 @@
             }
             
             requestAnimationFrame(updateSlideOffset);
+        }
+        
+        // Функция для сброса смещения (обратная анимация к первоначальному положению)
+        function resetSlideDown() {
+            if (!isSlidingDown && currentSlideOffset === 0) return; // Уже сброшено
+            
+            const startOffset = currentSlideOffset;
+            const startTime = performance.now();
+            isSlidingDown = false; // Сбрасываем флаг, чтобы не запускалось новое смещение
+            
+            function updateSlideReset() {
+                const now = performance.now();
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / SLIDE_DURATION, 1);
+                
+                // Линейное уменьшение смещения от текущего до 0
+                currentSlideOffset = startOffset * (1 - progress);
+                
+                if (progress >= 1) {
+                    // Анимация завершена
+                    currentSlideOffset = 0;
+                    return;
+                }
+                
+                requestAnimationFrame(updateSlideReset);
+            }
+            
+            requestAnimationFrame(updateSlideReset);
         }
 
         // Переменная для отслеживания предыдущей позиции скролла в updateDebugInfo
@@ -1937,7 +2120,7 @@
             const minCardPosition = 88; // Минимальная позиция карточки
             const maxCardPosition = 250; // Фон уже в финальной позиции, когда карточка на 250px — выезжает быстрее
             const minTranslateY = 0; // Когда карточка на maxCardPosition и ниже — background-section вверху
-            const maxTranslateY = 100; // Когда карточка на 88px и выше — background-section внизу (100vh)
+            const maxTranslateY = 50; // Когда карточка на 88px и выше — background-section внизу (50vh)
             
             let translateY;
             if (cardTop <= minCardPosition) {
@@ -1968,7 +2151,12 @@
                 const now = Date.now();
                 
                 // Определяем направление скролла
+                const previousScrollDirection = isScrollingDown;
                 isScrollingDown = currentScrollY > lastScrollY;
+                
+                // Определяем, изменилось ли направление скролла
+                const scrollDirectionChanged = lastScrollDirection !== null && 
+                                             lastScrollDirection !== isScrollingDown;
                 
                 // Вычисляем скорость скролла
                 const timeDelta = (now - lastScrollTime) / 1000; // в секундах
@@ -1982,6 +2170,73 @@
                 
                 lastScrollY = currentScrollY;
                 lastScrollTime = now;
+                
+                // Обработка изменения направления скролла
+                // Только если анимация не заблокирована и не идет начальная анимация
+                if (scrollDirectionChanged && !isScrollBlocked && !isInitialAnimationPlaying && totalFramesCount > 0) {
+                    const currentFrameIndex = Math.floor(currentFrame);
+                    const isAtFirstFrame = currentFrameIndex === 0;
+                    const isAtLastFrame = currentFrameIndex >= totalFramesCount - 1;
+                    
+                    // Обрабатываем изменение направления только если анимация не на первом или последнем кадре
+                    if (!isAtFirstFrame && !isAtLastFrame) {
+                        // Если направление изменилось с вверх на вниз (было false, стало true)
+                        if (!previousScrollDirection && isScrollingDown) {
+                            // Устанавливаем флаг, что изменение направления обработано
+                            isDirectionChangeHandled = true;
+                            
+                            // Сбрасываем смещение (обратная анимация к первоначальному положению)
+                            resetSlideDown();
+                            
+                            // Меняем направление анимации: проигрываем с текущего кадра к первому
+                            targetFrame = 0;
+                            
+                            if (!isAnimating) {
+                                isAnimating = true;
+                                lastFrameTime = 0;
+                                if (animationId) {
+                                    cancelAnimationFrame(animationId);
+                                }
+                                requestAnimationFrame(animate);
+                            }
+                            
+                            // Сбрасываем флаг через небольшую задержку, чтобы updateAnimation не переопределил targetFrame
+                            setTimeout(() => {
+                                isDirectionChangeHandled = false;
+                            }, 100);
+                        }
+                        // Если направление изменилось с вниз на вверх (было true, стало false)
+                        else if (previousScrollDirection && !isScrollingDown) {
+                            // Устанавливаем флаг, что изменение направления обработано
+                            isDirectionChangeHandled = true;
+                            
+                            // Если достигли 28 кадра - запускаем смещение вниз
+                            if (currentFrameIndex >= MAX_FRAME_DOWN) {
+                                startSlideDown();
+                            }
+                            
+                            // Меняем направление анимации: проигрываем с текущего кадра к 28 кадру
+                            targetFrame = MAX_FRAME_DOWN;
+                            
+                            if (!isAnimating) {
+                                isAnimating = true;
+                                lastFrameTime = 0;
+                                if (animationId) {
+                                    cancelAnimationFrame(animationId);
+                                }
+                                requestAnimationFrame(animate);
+                            }
+                            
+                            // Сбрасываем флаг через небольшую задержку, чтобы updateAnimation не переопределил targetFrame
+                            setTimeout(() => {
+                                isDirectionChangeHandled = false;
+                            }, 100);
+                        }
+                    }
+                }
+                
+                // Сохраняем текущее направление для следующей проверки
+                lastScrollDirection = isScrollingDown;
                 
                 // Управление snap для карточек
                 const INITIAL_CARD_POSITION = 88; // Первоначальное положение карточки
@@ -2009,6 +2264,12 @@
                     
                     if (isAtInitialPositionForAnim && (spriteSheet || hasWebGL) && totalFramesCount > 0) {
                         const currentFrameIndex = Math.floor(currentFrame);
+                        const isAtLastFrame = currentFrameIndex >= totalFramesCount - 1;
+                        
+                        // Если анимация на последнем кадре и скроллим вверх - не запускаем анимацию
+                        if (isAtLastFrame && !isScrollingDown) {
+                            return; // Не воспроизводим анимацию при скролле вверх, если уже на последнем кадре
+                        }
                         
                         // Если анимация не на 1 кадре - проигрываем до первого кадра
                         if (currentFrameIndex > 0) {
@@ -2043,8 +2304,14 @@
                 
                 // Обновляем анимацию на основе позиции карточки (как в scroll-animation.html)
                 // Но только если анимация не заблокирована (не проигрывается по клику)
-                if (!isScrollBlocked) {
-                    updateAnimation(cardTop);
+                // И только если текстуры уже загружены
+                if (!isScrollBlocked && totalFramesCount > 0) {
+                    const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
+                    const hasWebGLSingle = useWebGL && spriteTexture !== null;
+                    const hasWebGL = hasWebGLTiles || hasWebGLSingle;
+                    if (spriteSheet || hasWebGL) {
+                        updateAnimation(cardTop);
+                    }
                 }
             }, { passive: true });
         }
@@ -2107,6 +2374,9 @@
 
         // Инициализация (как в scroll-animation.html)
         function initialize() {
+            // Настраиваем отслеживание взаимодействия пользователя
+            setupUserInteractionTracking();
+            
             // Настраиваем обработчик скролла
             setupScrollHandler();
             
