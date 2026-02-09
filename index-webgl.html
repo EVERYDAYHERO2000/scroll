@@ -304,14 +304,23 @@
 
         /* Разворачиваемые карточки (стили из cards-demo) */
         .card-collapsible {
-            --spring-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
-            --spring-duration: 0.45s;
+            --spring-ease-expand: cubic-bezier(0.34, 1.56, 0.64, 1); /* Пружинный для разворачивания */
+            --spring-ease-collapse: cubic-bezier(0.34, 1.4, 0.64, 1); /* Пружинный для сворачивания, менее отскакивающий */
+            --spring-duration-expand: 0.45s; /* Длительность разворачивания */
+            --spring-duration-collapse: 0.35s; /* Длительность сворачивания (быстрее) */
             height: 80px;
             overflow: hidden;
             min-height: unset;
             padding: 0;
-            transition: height var(--spring-duration) var(--spring-ease),
-                        border-radius var(--spring-duration) var(--spring-ease),
+            transition: height var(--spring-duration-collapse) var(--spring-ease-collapse),
+                        border-radius var(--spring-duration-collapse) var(--spring-ease-collapse),
+                        margin 0.3s ease;
+        }
+        
+        /* При разворачивании используем более пружинный easing и большую длительность */
+        .card-collapsible.expanded {
+            transition: height var(--spring-duration-expand) var(--spring-ease-expand),
+                        border-radius var(--spring-duration-expand) var(--spring-ease-expand),
                         margin 0.3s ease;
         }
 
@@ -355,7 +364,13 @@
             flex-shrink: 0;
             margin: 0;
             border-radius: 0;
-            transition: margin 0.35s var(--spring-ease), border-radius 0.35s var(--spring-ease);
+            transition: margin var(--spring-duration-collapse) var(--spring-ease-collapse), 
+                        border-radius var(--spring-duration-collapse) var(--spring-ease-collapse);
+        }
+        
+        .card-collapsible.expanded .card-header {
+            transition: margin var(--spring-duration-expand) var(--spring-ease-expand), 
+                        border-radius var(--spring-duration-expand) var(--spring-ease-expand);
         }
 
         .card-header-title-wrapper {
@@ -384,6 +399,11 @@
         .card-header-phone-number {
             font-size: 14px;
             color: #ffffff;
+        }
+        
+        /* Применяем SVG фильтр к номеру телефона в первой карточке */
+        #firstCard .card-header-phone-number {
+            filter: url(#phone-filter);
         }
 
         .card-header-phone-copy {
@@ -454,12 +474,32 @@
             border-radius: 0;
             padding: 16px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
             cursor: pointer;
             transition: background-color 0.2s ease;
             position: relative;
             overflow: hidden;
+        }
+        
+        .card-menu-item-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .card-menu-item-icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            margin-left: 12px;
+            opacity: 0.5;
+            align-self: flex-start;
+            margin-top: 2px; /* Выравнивание с заголовком */
+            transform:scale(1.5) translateY(2px);
         }
 
         .card-menu-item:first-child {
@@ -639,6 +679,66 @@
     </style>
 </head>
 <body>
+    <!-- SVG фильтр для номера телефона -->
+    <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="position: absolute; width: 0; height: 0;">
+        <defs>
+            <filter id="phone-filter" width="150%" height="160%" x="-25%" y="-25%">
+                <!-- COLORS -->
+                <feFlood flood-color="#6B7A8A" result="COLOR-blue"></feFlood>
+                <feFlood flood-color="#7A7A8A" result="COLOR-violet"></feFlood>
+                <feFlood flood-color="#8A8A9A" result="COLOR-violet-light"></feFlood>
+                <!-- COLORS END -->
+
+                <!-- BOTTOM SPLASH -->
+                <feTurbulence baseFrequency="0.15" type="fractalNoise" numOctaves="2" seed="2" result="BOTTOM-SPLASH_10">
+                    <animate attributeName="baseFrequency" values="0.15;0.18;0.15" dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"></animate>
+                    <animate attributeName="seed" values="2;5;2" dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"></animate>
+                </feTurbulence>
+                <feGaussianBlur stdDeviation="6.5" in="SourceAlpha" result="BOTTOM-SPLASH_20"></feGaussianBlur>
+                <feDisplacementMap scale="600" in="BOTTOM-SPLASH_20" in2="BOTTOM-SPLASH_10" result="BOTTOM-SPLASH_30"></feDisplacementMap>
+                <feComposite operator="in" in="COLOR-blue" in2="BOTTOM-SPLASH_30" result="BOTTOM-SPLASH_40"></feComposite>
+                <!-- BOTTOM END -->
+
+                <!-- MIDDLE SPLASH -->
+                <feTurbulence baseFrequency="0.2" type="fractalNoise" numOctaves="2" seed="1" result="MIDDLE-SPLASH_10">
+                    <animate attributeName="baseFrequency" values="0.2;0.23;0.2" dur="6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"></animate>
+                    <animate attributeName="seed" values="1;4;1" dur="6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"></animate>
+                </feTurbulence>
+                <feGaussianBlur in="SourceAlpha" stdDeviation="0.1" result="MIDDLE-SPLASH_20"></feGaussianBlur>
+                <feDisplacementMap in="MIDDLE-SPLASH_20" in2="MIDDLE-SPLASH_10" scale="40" result="MIDDLE-SPLASH_30"></feDisplacementMap>
+                <feComposite in="COLOR-violet-light" in2="MIDDLE-SPLASH_30" operator="in" result="MIDDLE-SPLASH_40"></feComposite>
+                <!-- MIDDLE END -->
+
+                <!-- TOP SPLASH -->
+                <feTurbulence baseFrequency="0.18" type="fractalNoise" numOctaves="2" seed="1" result="TOP-SPLASH_10">
+                    <animate attributeName="baseFrequency" values="0.18;0.21;0.18" dur="7s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"></animate>
+                    <animate attributeName="seed" values="1;3;1" dur="7s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"></animate>
+                </feTurbulence>
+                <feGaussianBlur stdDeviation="3.5" in="SourceAlpha" result="TOP-SPLASH_20"></feGaussianBlur>
+                <feDisplacementMap scale="350" in="TOP-SPLASH_20" in2="TOP-SPLASH_10" result="TOP-SPLASH_30"></feDisplacementMap>
+                <feComposite operator="in" in="COLOR-violet" in2="TOP-SPLASH_30" result="TOP-SPLASH_40"></feComposite>
+                <!-- TOP END -->
+
+                <!-- LIGHT EFFECTS -->
+                <feMerge result="LIGHT-EFFECTS_10">
+                    <feMergeNode in="BOTTOM-SPLASH_40"></feMergeNode>
+                    <feMergeNode in="MIDDLE-SPLASH_40"></feMergeNode>
+                    <feMergeNode in="TOP-SPLASH_40"></feMergeNode>
+                </feMerge>
+                <feColorMatrix type="matrix" values="0 0 0 0 0,
+                    0 0 0 0 0,
+                    0 0 0 0 0,
+                    0 0 0 1 0" in="LIGHT-EFFECTS_10" result="LIGHT-EFFECTS_20"></feColorMatrix>
+                <feGaussianBlur stdDeviation="2" in="LIGHT-EFFECTS_20" result="LIGHT-EFFECTS_30"></feGaussianBlur>
+                <feSpecularLighting surfaceScale="5" specularConstant=".75" specularExponent="30" lighting-color="#white" in="LIGHT-EFFECTS_30" result="LIGHT-EFFECTS_40">
+                    <fePointLight x="-50" y="-100" z="400"></fePointLight>
+                </feSpecularLighting>
+                <feComposite operator="in" in="LIGHT-EFFECTS_40" in2="LIGHT-EFFECTS_20" result="LIGHT-EFFECTS_50"></feComposite>
+                <feComposite operator="arithmetic" k1="0" k2="1" k3="1" k4="0" in="LIGHT-EFFECTS_10" in2="LIGHT-EFFECTS_50" result="LIGHT-EFFECTS_60"></feComposite>
+                <!-- LIGHT EFFECTS END -->
+            </filter>
+        </defs>
+    </svg>
     <div class="background-section">
         <div class="background-section-wrapper">
             <video id="backgroundVideo" src="6cccfa21f50c11f0b1b012d53b0fb308.mp4" autoplay loop muted playsinline></video>
@@ -687,17 +787,20 @@
                         </div>
                         <div class="card-menu">
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 1</div>
-                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Приложения под защитой</div>
+                                    <div class="card-menu-item-description">Подключите авторизацию в приложениях</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 2</div>
-                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Создать призрачный номер</div>
+                                    <div class="card-menu-item-description">Временный номер для разнх дел</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
-                            <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 3</div>
-                                <div class="card-menu-item-description">Описание пункта меню 3</div>
-                            </div>
+                            
                         </div>
                     </div>
                 </div>
@@ -710,18 +813,24 @@
                                 <h2>Основной</h2>
                             </div>
                             <div class="card-header-phone">
-                                <span class="card-header-phone-number">+7 (929) 747-78-70</span>
+                                <span class="card-header-phone-number">+7 (999) 123-45-67</span>
                                 <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
                             </div>
                         </div>
                         <div class="card-menu">
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 1</div>
-                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Журнал звонков</div>
+                                    <div class="card-menu-item-description">AI-ассистент подключён</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 2</div>
-                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Настройки безопасности</div>
+                                    <div class="card-menu-item-description">Ваш номер полностью защищён</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                         </div>
                     </div>
@@ -735,22 +844,31 @@
                                 <h2>Beeline</h2>
                             </div>
                             <div class="card-header-phone">
-                                <span class="card-header-phone-number">+7 (929) 747-78-70</span>
+                                <span class="card-header-phone-number">+7 (905) 234-56-78</span>
                                 <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
                             </div>
                         </div>
                         <div class="card-menu">
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 1</div>
-                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 1</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 2</div>
-                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 2</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 3</div>
-                                <div class="card-menu-item-description">Описание пункта меню 3</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 3</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 3</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                         </div>
                     </div>
@@ -763,19 +881,22 @@
                                 <img src="i3.svg" alt="">
                                 <h2>Для путешествий</h2>
                             </div>
-                            <div class="card-header-phone">
-                                <span class="card-header-phone-number">+7 (929) 747-78-70</span>
-                                <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
-                            </div>
+                            
                         </div>
                         <div class="card-menu">
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 1</div>
-                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 1</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 2</div>
-                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 2</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                         </div>
                     </div>
@@ -785,31 +906,25 @@
                     <div class="card-inner">
                         <div class="card-menu">
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 1</div>
-                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 1</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 2</div>
-                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 2</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 3</div>
-                                <div class="card-menu-item-description">Описание пункта меню 3</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card card-menu-only">
-                    <div class="card-inner">
-                        <div class="card-menu">
-                            <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 1</div>
-                                <div class="card-menu-item-description">Описание пункта меню 1</div>
-                            </div>
-                            <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 2</div>
-                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 3</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 3</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                         </div>
                     </div>
@@ -819,16 +934,46 @@
                     <div class="card-inner">
                         <div class="card-menu">
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 1</div>
-                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 1</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 2</div>
-                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 2</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-menu-only">
+                    <div class="card-inner">
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 1</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                             <div class="card-menu-item">
-                                <div class="card-menu-item-title">Пункт меню 3</div>
-                                <div class="card-menu-item-description">Описание пункта меню 3</div>
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 2</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-content">
+                                    <div class="card-menu-item-title">Пункт меню 3</div>
+                                    <div class="card-menu-item-description">Описание пункта меню 3</div>
+                                </div>
+                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                         </div>
                     </div>
@@ -1018,22 +1163,24 @@
                 
                 // Используем плавный переход с увеличенным порогом для устранения белого контура
                 // Увеличиваем порог для захвата большего количества граничных пикселей
-                float threshold = 0.5;
-                float fadeStart = threshold * 0.7; // Начало затухания (40% от порога) - более раннее начало
+                float threshold = 0.65;
+                float fadeStart = threshold * 0.7; // Еще более широкий диапазон
                 float fadeEnd = threshold; // Конец затухания (100% порога)
                 
                 float alpha = c.a * u_alpha;
                 float fade = 1.0;
                 
-                // Вычисляем fade для белого цвета с более плавным переходом
+                // Вычисляем fade для белого цвета с кубическим затуханием
                 if (d1 < threshold) {
                     float fadeValue = smoothstep(fadeStart, fadeEnd, d1);
+                    fadeValue = fadeValue * fadeValue * fadeValue; // Кубическая функция
                     fade = min(fade, fadeValue);
                 }
                 
-                // Вычисляем fade для светло-серого цвета (берем минимальное значение)
+                // Вычисляем fade для светло-серого цвета с кубическим затуханием
                 if (d2 < threshold) {
                     float fadeValue = smoothstep(fadeStart, fadeEnd, d2);
+                    fadeValue = fadeValue * fadeValue * fadeValue; // Кубическая функция
                     fade = min(fade, fadeValue);
                 }
                 
