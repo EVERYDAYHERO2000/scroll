@@ -5,6 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magnetic Scroll Effect - Animation Timeline</title>
     <style>
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Thin.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Thin.woff") format("woff");
+            font-weight: 100;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Thin Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Thin Italic.woff") format("woff");
+            font-weight: 100;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Light.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Light.woff") format("woff");
+            font-weight: 300;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Light Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Light Italic.woff") format("woff");
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Regular.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Regular.woff") format("woff");
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Regular Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Regular Italic.woff") format("woff");
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Medium.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Medium.woff") format("woff");
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Medium Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Medium Italic.woff") format("woff");
+            font-weight: 500;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Bold.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Bold.woff") format("woff");
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Bold Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Bold Italic.woff") format("woff");
+            font-weight: 700;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Heavy.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Heavy.woff") format("woff");
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Heavy Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Heavy Italic.woff") format("woff");
+            font-weight: 800;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Black.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Black.woff") format("woff");
+            font-weight: 900;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "YS Text";
+            src: url("YS_Family_WebFonts/YS Text/YS Text-Black Italic.woff2") format("woff2"),
+                 url("YS_Family_WebFonts/YS Text/YS Text-Black Italic.woff") format("woff");
+            font-weight: 900;
+            font-style: italic;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -19,7 +131,7 @@
         body {
             background-color: #F2F2F2;
             -webkit-tap-highlight-color: transparent;
-            font-family: Helvetica, sans-serif;
+            font-family: "YS Text", Arial, sans-serif;
             overflow-x: hidden;
         }
 
@@ -141,10 +253,9 @@
 
         .layout-container {
             background-color: #F2F2F2;
-            max-width: 370px;
             margin: 0 auto;
             width: 100%;
-            padding: 0;
+            padding: 0 16px;
             position: relative;
         }
 
@@ -160,13 +271,14 @@
             padding: 16px;
             margin: 10px 0;
             position: relative;
-            min-height: 370px;
+            
         }
 
 
         .card h2 {
             margin-bottom: 20px;
-            color: #333;
+            color: #242424;
+            font-weight: 500;
         }
 
         .card p {
@@ -179,6 +291,15 @@
             border-radius: inherit;
             min-height: 100%;
             padding: 16px;
+        }
+
+        .card-menu-only {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .card-menu-only .card-inner {
+            padding: 0;
         }
 
         /* Разворачиваемые карточки (стили из cards-demo) */
@@ -311,7 +432,7 @@
 
         .card-collapsible .card-header h2 {
             margin: 0;
-            color: #4a4a4a;
+
             font-size: 16px;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -320,10 +441,66 @@
             min-width: 0;
         }
 
-        .card-collapsible > .card-inner > p {
+        .card-menu {
+            background-color: #F2F2F2;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .card-menu-item {
+            background: white;
+            height: 80px;
+            border-radius: 0;
             padding: 16px;
-            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-menu-item:first-child {
+            border-radius: 0 0 4px 4px;
+        }
+
+        .card-menu-item:last-child {
+            border-radius: 4px 4px 0 0;
+            padding-bottom: 32px;
+            min-height: 80px;
+            height: auto;
+        }
+
+        .card-menu-item:first-child:last-child {
+            border-radius: 4px;
+        }
+
+        .card-menu-item:not(:first-child):not(:last-child) {
+            border-radius: 4px;
+        }
+
+        .card-menu-item .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.1);
+            transform: scale(0);
+            pointer-events: none;
+            animation: ripple-anim 0.6s ease-out forwards;
+        }
+
+        .card-menu-item-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #242424;
+            margin-bottom: 4px;
+        }
+
+        .card-menu-item-description {
             font-size: 13px;
+            color: rgba(0, 0, 0, 0.50);
+            line-height: 1.4;
         }
 
         .card-collapsible {
@@ -437,6 +614,7 @@
         }
 
         .debug-info {
+            opacity: 0;
             position: fixed;
             left: 0;
             bottom: 0;
@@ -467,10 +645,8 @@
             <!-- Навигационное меню внутри empty-space -->
             <div class="navigation">
                 <div class="navigation-phone">
-                    <span class="navigation-phone-number">+7 (929) 747-78-70</span>
-                    <svg class="navigation-phone-dropdown" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <span class="navigation-phone-number"></span>
+                    
                 </div>
                 <div class="navigation-avatar">
                     <div class="navigation-avatar-inner">
@@ -502,7 +678,20 @@
                                 <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
                             </div>
                         </div>
-                        <p>Здесь отображается анимация на canvas над блоком карточек. Карточка сворачивается и разворачивается по клику на заголовок.</p>
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 3</div>
+                                <div class="card-menu-item-description">Описание пункта меню 3</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -518,7 +707,16 @@
                                 <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
                             </div>
                         </div>
-                        <p>Содержимое карточки. В свёрнутом состоянии высота 80px. Клик по заголовку сворачивает или разворачивает.</p>
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -534,7 +732,20 @@
                                 <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
                             </div>
                         </div>
-                        <p>Короткий текст.</p>
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 3</div>
+                                <div class="card-menu-item-description">Описание пункта меню 3</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -550,18 +761,71 @@
                                 <img src="i4.svg" alt="Копировать" class="card-header-phone-copy">
                             </div>
                         </div>
-                        <p>Разворачиваемая карточка с тем же поведением.</p>
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card" id="secondCard">
+                <div class="card card-menu-only" id="secondCard">
+                    <div class="card-inner">
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 3</div>
+                                <div class="card-menu-item-description">Описание пункта меню 3</div>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                <div class="card">
-                     </div>
-
-                <div class="card">
+                <div class="card card-menu-only">
+                    <div class="card-inner">
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                <div class="card card-menu-only">
+                    <div class="card-inner">
+                        <div class="card-menu">
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 1</div>
+                                <div class="card-menu-item-description">Описание пункта меню 1</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 2</div>
+                                <div class="card-menu-item-description">Описание пункта меню 2</div>
+                            </div>
+                            <div class="card-menu-item">
+                                <div class="card-menu-item-title">Пункт меню 3</div>
+                                <div class="card-menu-item-description">Описание пункта меню 3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -615,6 +879,15 @@
                         card.offsetHeight;
                         card.style.height = targetHeight + 'px';
                     }
+                });
+            });
+
+            // Ripple эффект для card-menu-item
+            document.querySelectorAll('.card-menu-item').forEach(function(menuItem) {
+                menuItem.addEventListener('click', function(e) {
+                    var x = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : e.clientX);
+                    var y = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : e.clientY);
+                    if (x != null && y != null) createRipple(this, x, y);
                 });
             });
         })();
@@ -794,10 +1067,13 @@
             { r: 235, g: 233, b: 231 }, // #EBE9E7
             { r: 255, g: 255, b: 255 }  // #FFF
         ];
-        const threshold = 80;
+        
+        // Пороги для разных canvas
+        const animationCanvasThreshold = 100;  // Для animationCanvas
+        const backgroundCanvasThreshold = 50; // Для backgroundCanvas
 
         // Функция для проверки, является ли цвет "прозрачным"
-        function shouldBeTransparent(r, g, b) {
+        function shouldBeTransparent(r, g, b, threshold) {
             return transparentColors.some(color => {
                 return Math.abs(r - color.r) <= threshold &&
                        Math.abs(g - color.g) <= threshold &&
@@ -806,15 +1082,16 @@
         }
 
         // Функция для обработки кадра и создания прозрачности
-        function processFrameData(imageData) {
+        function processFrameData(imageData, threshold) {
             const data = imageData.data;
+            const usedThreshold = threshold !== undefined ? threshold : animationCanvasThreshold;
             
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i];
                 const g = data[i + 1];
                 const b = data[i + 2];
                 
-                if (shouldBeTransparent(r, g, b)) {
+                if (shouldBeTransparent(r, g, b, usedThreshold)) {
                     data[i + 3] = 0; // alpha
                 }
             }
@@ -842,7 +1119,7 @@
             );
             
             const imageData = tempCtx.getImageData(0, 0, frameWidth, frameHeight);
-            return processFrameData(imageData);
+            return processFrameData(imageData, animationCanvasThreshold);
         }
 
         function drawFrameWebGL(frameIndex, offsetY) {
@@ -1438,7 +1715,7 @@
                         const imageData = backgroundCtx.getImageData(0, 0, backgroundCanvas.width, backgroundCanvas.height);
                         
                         // Обрабатываем пиксели для замены белого фона на прозрачность
-                        const processedData = processFrameData(imageData);
+                        const processedData = processFrameData(imageData, backgroundCanvasThreshold);
                         
                         // Применяем обработанные данные обратно на canvas
                         backgroundCtx.putImageData(processedData, 0, 0);
