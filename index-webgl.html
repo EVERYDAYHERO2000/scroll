@@ -117,6 +117,10 @@
             font-style: italic;
         }
 
+        :root {
+            --card-gap: 2px; /* Отступ между карточками и пунктами меню */
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -207,11 +211,14 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             overflow: hidden;
+        }
+        
+        .navigation-avatar-inner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .navigation-avatar-icon {
@@ -325,7 +332,7 @@
         }
 
         .card-collapsible:not(.expanded) + .card-collapsible:not(.expanded) {
-            margin-top: 1px;
+            margin-top: var(--card-gap);
         }
 
         .card-collapsible:not(.expanded):has(+ .card-collapsible:not(.expanded)) {
@@ -403,7 +410,21 @@
         
         /* Применяем SVG фильтр к номеру телефона в первой карточке */
         #firstCard .card-header-phone-number {
-            filter: url(#phone-filter);
+            filter: url(#phone-spoiler-filter);
+            cursor: pointer;
+            transition: filter 0.3s ease;
+        }
+        
+        /* Состояние без фильтра */
+        #firstCard .card-header-phone-number.no-filter {
+            filter: none;
+        }
+        
+        /* Усиливаем искажение для Safari */
+        @supports (-webkit-appearance: none) {
+            #firstCard .card-header-phone-number:not(.no-filter) {
+                filter: url(#phone-spoiler-filter-safari);
+            }
         }
 
         .card-header-phone-copy {
@@ -438,11 +459,11 @@
         }
 
         .layout-container .card-collapsible:nth-child(3) .card-header {
-            background: #FFE88E;
+            background: #ffffff;
         }
 
         .layout-container .card-collapsible:nth-child(4) .card-header {
-            background: linear-gradient(135deg, #b8d0e8 0%, #dce8f5 100%);
+            background: #ffffff;
         }
 
         .card-collapsible.expanded .card-header {
@@ -465,7 +486,7 @@
             background-color: #F2F2F2;
             display: flex;
             flex-direction: column;
-            gap: 1px;
+            gap: var(--card-gap);
         }
 
         .card-menu-item {
@@ -662,6 +683,7 @@
 
         .debug-info {
             opacity: 0;
+            pointer-events: none;
             position: fixed;
             left: 0;
             bottom: 0;
@@ -682,6 +704,87 @@
     <!-- SVG фильтр для номера телефона -->
     <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="position: absolute; width: 0; height: 0;">
         <defs>
+            <!-- Фильтр для эффекта spoiler с пикселями/звездами (только для текста) -->
+            <filter id="phone-spoiler-filter" width="200%" height="200%" x="-50%" y="-50%">
+                <!-- Работаем только с формой текста (SourceAlpha) -->
+                <feGaussianBlur in="SourceAlpha" stdDeviation="0.5" result="text-alpha"></feGaussianBlur>
+                
+                <!-- Создаем шум для эффекта пикселей -->
+                <feTurbulence baseFrequency="0.9" type="fractalNoise" numOctaves="3" seed="1" result="noise">
+                    <animate attributeName="baseFrequency" values="0.9;1.2;0.9" dur="5s" repeatCount="indefinite" calcMode="linear"></animate>
+                    <animate attributeName="seed" values="1;10;1" dur="5s" repeatCount="indefinite" calcMode="linear"></animate>
+                </feTurbulence>
+                
+                <!-- Создаем пиксельный эффект из шума -->
+                <feColorMatrix type="saturate" values="0" in="noise" result="grayscale-noise"></feColorMatrix>
+                <feComponentTransfer in="grayscale-noise" result="pixel-noise">
+                    <feFuncA type="discrete" tableValues="0 0.3 0.7 1"></feFuncA>
+                </feComponentTransfer>
+                
+                <!-- Применяем искажение только к форме текста -->
+                <feTurbulence baseFrequency="0.15" type="fractalNoise" numOctaves="2" seed="2" result="distort-noise">
+                    <animate attributeName="baseFrequency" values="0.15;0.25;0.15" dur="6s" repeatCount="indefinite" calcMode="linear"></animate>
+                    <animate attributeName="seed" values="2;8;2" dur="6s" repeatCount="indefinite" calcMode="linear"></animate>
+                </feTurbulence>
+                
+                <feDisplacementMap in="SourceGraphic" in2="distort-noise" scale="12" xChannelSelector="R" yChannelSelector="G" result="distorted"></feDisplacementMap>
+                
+                <!-- Применяем пиксельный шум только к области текста (используя text-alpha как маску) -->
+                <feComposite operator="in" in="pixel-noise" in2="text-alpha" result="masked-noise"></feComposite>
+                
+                <!-- Комбинируем искаженный текст с пиксельным шумом (только в области текста) -->
+                <feComposite operator="over" in="masked-noise" in2="distorted" result="combined"></feComposite>
+                
+                <!-- Усиливаем контраст для эффекта звезд -->
+                <feComponentTransfer in="combined" result="final">
+                    <feFuncR type="discrete" tableValues="0 0.2 0.4 0.6 0.8 1"></feFuncR>
+                    <feFuncG type="discrete" tableValues="0 0.2 0.4 0.6 0.8 1"></feFuncG>
+                    <feFuncB type="discrete" tableValues="0 0.2 0.4 0.6 0.8 1"></feFuncB>
+                    <feFuncA type="discrete" tableValues="0 0.3 0.6 0.9 1"></feFuncA>
+                </feComponentTransfer>
+            </filter>
+            
+            <!-- Фильтр для Safari с более сильным искажением -->
+            <filter id="phone-spoiler-filter-safari" width="200%" height="200%" x="-50%" y="-50%">
+                <!-- Работаем только с формой текста (SourceAlpha) -->
+                <feGaussianBlur in="SourceAlpha" stdDeviation="0.5" result="text-alpha"></feGaussianBlur>
+                
+                <!-- Создаем шум для эффекта пикселей -->
+                <feTurbulence baseFrequency="0.9" type="fractalNoise" numOctaves="3" seed="1" result="noise">
+                    <animate attributeName="baseFrequency" values="0.9;1.2;0.9" dur="120s" repeatCount="indefinite" calcMode="linear"></animate>
+                    <animate attributeName="seed" values="1;10;1" dur="120s" repeatCount="indefinite" calcMode="linear"></animate>
+                </feTurbulence>
+                
+                <!-- Создаем пиксельный эффект из шума -->
+                <feColorMatrix type="saturate" values="0" in="noise" result="grayscale-noise"></feColorMatrix>
+                <feComponentTransfer in="grayscale-noise" result="pixel-noise">
+                    <feFuncA type="discrete" tableValues="0 0.3 0.7 1"></feFuncA>
+                </feComponentTransfer>
+                
+                <!-- Применяем искажение только к форме текста (усиленное для Safari) -->
+                <feTurbulence baseFrequency="0.15" type="fractalNoise" numOctaves="2" seed="2" result="distort-noise">
+                    <animate attributeName="baseFrequency" values="0.15;0.25;0.15" dur="144s" repeatCount="indefinite" calcMode="linear"></animate>
+                    <animate attributeName="seed" values="2;8;2" dur="144s" repeatCount="indefinite" calcMode="linear"></animate>
+                </feTurbulence>
+                
+                <!-- Усиленное искажение для Safari (scale="18" вместо "8") -->
+                <feDisplacementMap in="SourceGraphic" in2="distort-noise" scale="18" xChannelSelector="R" yChannelSelector="G" result="distorted"></feDisplacementMap>
+                
+                <!-- Применяем пиксельный шум только к области текста (используя text-alpha как маску) -->
+                <feComposite operator="in" in="pixel-noise" in2="text-alpha" result="masked-noise"></feComposite>
+                
+                <!-- Комбинируем искаженный текст с пиксельным шумом (только в области текста) -->
+                <feComposite operator="over" in="masked-noise" in2="distorted" result="combined"></feComposite>
+                
+                <!-- Усиливаем контраст для эффекта звезд -->
+                <feComponentTransfer in="combined" result="final">
+                    <feFuncR type="discrete" tableValues="0 0.2 0.4 0.6 0.8 1"></feFuncR>
+                    <feFuncG type="discrete" tableValues="0 0.2 0.4 0.6 0.8 1"></feFuncG>
+                    <feFuncB type="discrete" tableValues="0 0.2 0.4 0.6 0.8 1"></feFuncB>
+                    <feFuncA type="discrete" tableValues="0 0.3 0.6 0.9 1"></feFuncA>
+                </feComponentTransfer>
+            </filter>
+            
             <filter id="phone-filter" width="150%" height="160%" x="-25%" y="-25%">
                 <!-- COLORS -->
                 <feFlood flood-color="#6B7A8A" result="COLOR-blue"></feFlood>
@@ -757,7 +860,7 @@
                 </div>
                 <div class="navigation-avatar">
                     <div class="navigation-avatar-inner">
-                        <div class="navigation-avatar-icon"></div>
+                        <img src="pic.jpg" alt="Avatar">
                     </div>
                 </div>
             </div>
@@ -851,25 +954,19 @@
                         <div class="card-menu">
                             <div class="card-menu-item">
                                 <div class="card-menu-item-content">
-                                    <div class="card-menu-item-title">Пункт меню 1</div>
-                                    <div class="card-menu-item-description">Описание пункта меню 1</div>
+                                    <div class="card-menu-item-title">Журнал звонков</div>
+                                    <div class="card-menu-item-description">AI-ассистент подключён</div>
                                 </div>
                                 <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
                             <div class="card-menu-item">
                                 <div class="card-menu-item-content">
-                                    <div class="card-menu-item-title">Пункт меню 2</div>
-                                    <div class="card-menu-item-description">Описание пункта меню 2</div>
+                                    <div class="card-menu-item-title">Настройки безопасности</div>
+                                    <div class="card-menu-item-description">Ваш номер полностью защищён</div>
                                 </div>
                                 <img src="Chevron.svg" alt="" class="card-menu-item-icon">
                             </div>
-                            <div class="card-menu-item">
-                                <div class="card-menu-item-content">
-                                    <div class="card-menu-item-title">Пункт меню 3</div>
-                                    <div class="card-menu-item-description">Описание пункта меню 3</div>
-                                </div>
-                                <img src="Chevron.svg" alt="" class="card-menu-item-icon">
-                            </div>
+                            
                         </div>
                     </div>
                 </div>
@@ -1860,6 +1957,20 @@
                 return;
             }
             
+            // Проверяем, находится ли canvas выше середины экрана
+            if (canvas) {
+                const canvasRect = canvas.getBoundingClientRect();
+                const screenMiddle = window.innerHeight / 2;
+                const isCanvasAboveMiddle = canvasRect.top < screenMiddle;
+                
+                // Если canvas находится ниже середины экрана - останавливаем анимацию
+                if (!isCanvasAboveMiddle) {
+                    isAnimating = false;
+                    animationId = null;
+                    return;
+                }
+            }
+            
             const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
             const hasWebGLSingle = useWebGL && spriteTexture !== null;
             const hasWebGL = hasWebGLTiles || hasWebGLSingle;
@@ -1975,6 +2086,25 @@
             if ((!hasWebGL && !spriteSheet) || totalFramesCount === 0) {
                 console.warn('updateAnimation: No textures available or no frames');
                 return;
+            }
+            
+            // Проверяем, находится ли canvas выше середины экрана
+            if (canvas) {
+                const canvasRect = canvas.getBoundingClientRect();
+                const screenMiddle = window.innerHeight / 2;
+                const isCanvasAboveMiddle = canvasRect.top < screenMiddle;
+                
+                // Если canvas находится ниже середины экрана - останавливаем анимацию
+                if (!isCanvasAboveMiddle) {
+                    if (isAnimating) {
+                        isAnimating = false;
+                        if (animationId) {
+                            cancelAnimationFrame(animationId);
+                            animationId = null;
+                        }
+                    }
+                    return; // Не воспроизводим анимацию, если canvas ниже середины экрана
+                }
             }
             
             // Если анимация заблокирована (проигрывается по клику) - не обновляем
@@ -2284,6 +2414,35 @@
             
             backgroundWrapper.style.transform = `translateY(${translateY}vh)`;
             
+            // Управление воспроизведением видео в зависимости от позиции background-section-wrapper
+            if (backgroundVideo && backgroundCanvas) {
+                // Получаем текущую позицию background-section-wrapper
+                const wrapperRect = backgroundWrapper.getBoundingClientRect();
+                const wrapperTop = wrapperRect.top;
+                const screenHeight = window.innerHeight;
+                const wrapperTopVH = (wrapperTop / screenHeight) * 100; // Конвертируем в vh
+                
+                // Если background-section-wrapper на высоте 50vh или ниже - останавливаем видео
+                if (wrapperTopVH >= 50 || translateY >= 50) {
+                    if (!backgroundVideo.paused) {
+                        backgroundVideo.pause();
+                    }
+                    // Скрываем canvas когда видео остановлено
+                    backgroundCanvas.style.opacity = '0';
+                    backgroundCanvas.style.pointerEvents = 'none';
+                } else {
+                    // Если выше 50vh - воспроизводим видео
+                    if (backgroundVideo.paused && backgroundVideo.readyState >= 2) {
+                        backgroundVideo.play().catch(error => {
+                            console.warn('Background video play failed:', error);
+                        });
+                    }
+                    // Показываем canvas когда видео воспроизводится
+                    backgroundCanvas.style.opacity = '1';
+                    backgroundCanvas.style.pointerEvents = 'auto';
+                }
+            }
+            
             // Продолжаем обновление в следующем кадре
             backgroundUpdateFrameId = requestAnimationFrame(updateBackgroundPosition);
         }
@@ -2474,27 +2633,35 @@
             backgroundVideo.muted = true;
             backgroundVideo.playsInline = true;
 
-            // Пытаемся запустить воспроизведение
-            const playPromise = backgroundVideo.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    // Автовоспроизведение заблокировано, попробуем запустить после загрузки
-                    backgroundVideo.addEventListener('loadeddata', () => {
-                        backgroundVideo.play().catch(() => {
-                            // Игнорируем ошибки автовоспроизведения
+            // Функция для запуска воспроизведения
+            function tryPlayVideo() {
+                if (backgroundVideo.paused) {
+                    const playPromise = backgroundVideo.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => {
+                            console.warn('Background video play failed:', error);
+                            // Пробуем снова через небольшую задержку
+                            setTimeout(tryPlayVideo, 500);
                         });
-                    });
-                });
+                    }
+                }
             }
 
+            // Пытаемся запустить воспроизведение сразу
+            tryPlayVideo();
+
+            // Также пробуем запустить после загрузки метаданных
             backgroundVideo.addEventListener('loadedmetadata', () => {
                 // Устанавливаем размер canvas равным размеру видео
                 backgroundCanvas.width = backgroundVideo.videoWidth;
                 backgroundCanvas.height = backgroundVideo.videoHeight;
                 
+                // Пробуем запустить воспроизведение
+                tryPlayVideo();
+                
                 // Запускаем отрисовку кадров
                 function drawVideoFrame() {
-                    if (backgroundVideo.readyState >= 2) {
+                    if (backgroundVideo.readyState >= 2 && !backgroundVideo.paused) {
                         // Очищаем canvas
                         backgroundCtx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
                         
@@ -2511,11 +2678,16 @@
                         backgroundCtx.putImageData(processedData, 0, 0);
                     }
                     
-                    // Продолжаем отрисовку
+                    // Продолжаем отрисовку (даже если видео остановлено, чтобы проверять состояние)
                     requestAnimationFrame(drawVideoFrame);
                 }
                 
                 drawVideoFrame();
+            });
+
+            // Также пробуем запустить после загрузки данных
+            backgroundVideo.addEventListener('loadeddata', () => {
+                tryPlayVideo();
             });
         }
 
@@ -2523,6 +2695,15 @@
         function initialize() {
             // Настраиваем отслеживание взаимодействия пользователя
             setupUserInteractionTracking();
+            
+            // Настраиваем обработчик клика на номер телефона в первой карточке
+            const firstCardPhoneNumber = document.querySelector('#firstCard .card-header-phone-number');
+            if (firstCardPhoneNumber) {
+                firstCardPhoneNumber.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Предотвращаем всплытие события к карточке
+                    this.classList.toggle('no-filter');
+                });
+            }
             
             // Настраиваем обработчик скролла
             setupScrollHandler();
