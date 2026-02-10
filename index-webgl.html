@@ -2011,6 +2011,26 @@
             if (Math.abs(diff) < 0.01) {
                 currentFrame = targetFrame;
                 
+                // Если достигли 28 кадра при скролле вверх - перепрыгиваем на последний кадр
+                const currentFrameIndex = Math.floor(currentFrame);
+                if (!isScrollingDown && currentFrameIndex >= MAX_FRAME_DOWN && targetFrame === MAX_FRAME_DOWN) {
+                    // Перепрыгиваем на последний кадр и останавливаем анимацию
+                    currentFrame = totalFramesCount - 1;
+                    targetFrame = totalFramesCount - 1;
+                    // Сбрасываем смещение, так как мы перепрыгнули на последний кадр
+                    if (isSlidingDown) {
+                        isSlidingDown = false;
+                        currentSlideOffset = 0;
+                    }
+                    drawFrame(Math.floor(currentFrame), 0);
+                    isAnimating = false;
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                        animationId = null;
+                    }
+                    return;
+                }
+                
                 // Обработка завершения начальной анимации
                 // Анимация завершается когда достигли кадра 0 (визуально кадр 1)
                 // Проигрываем от кадра totalFramesCount-1 (визуально кадр totalFramesCount) до кадра 0 (визуально кадр 1)
@@ -2067,6 +2087,12 @@
         function calculateTargetFrameAtInitialPosition() {
             const currentFrameIndex = Math.floor(currentFrame);
             
+            // Если скроллим вверх и анимация на 28 кадре или выше - устанавливаем targetFrame = 28
+            // Это нужно для запуска смещения кадров вниз
+            if (!isScrollingDown && currentFrameIndex >= MAX_FRAME_DOWN) {
+                return MAX_FRAME_DOWN;
+            }
+            
             // Если анимация не на 1 кадре - проигрываем до первого кадра (кадр 0)
             if (currentFrameIndex > 0) {
                 return 0; // Проигрывать до 1 кадра (кадр 0)
@@ -2117,10 +2143,8 @@
                 return;
             }
             
-            // Если идет смещение вниз - не обновляем анимацию кадров
-            if (isSlidingDown) {
-                return;
-            }
+            // Если идет смещение вниз - все равно обновляем targetFrame, но не останавливаем смещение
+            // Это нужно для того, чтобы анимация могла продолжать играть до 28 кадра
             
             const INITIAL_CARD_POSITION = 88; // Первоначальное положение карточки
             
