@@ -682,7 +682,7 @@
         }
 
         .debug-info {
-            
+            opacity: 0;
             pointer-events: none;
             position: fixed;
             left: 0;
@@ -1957,20 +1957,6 @@
                 return;
             }
             
-            // Проверяем, находится ли canvas выше середины экрана
-            if (canvas) {
-                const canvasRect = canvas.getBoundingClientRect();
-                const screenMiddle = window.innerHeight / 2;
-                const isCanvasAboveMiddle = canvasRect.top < screenMiddle;
-                
-                // Если canvas находится ниже середины экрана - останавливаем анимацию
-                if (!isCanvasAboveMiddle) {
-                    isAnimating = false;
-                    animationId = null;
-                    return;
-                }
-            }
-            
             const hasWebGLTiles = useWebGL && spriteTextureTiles.length > 0;
             const hasWebGLSingle = useWebGL && spriteTexture !== null;
             const hasWebGL = hasWebGLTiles || hasWebGLSingle;
@@ -2112,25 +2098,6 @@
             if ((!hasWebGL && !spriteSheet) || totalFramesCount === 0) {
                 console.warn('updateAnimation: No textures available or no frames');
                 return;
-            }
-            
-            // Проверяем, находится ли canvas выше середины экрана
-            if (canvas) {
-                const canvasRect = canvas.getBoundingClientRect();
-                const screenMiddle = window.innerHeight / 2;
-                const isCanvasAboveMiddle = canvasRect.top < screenMiddle;
-                
-                // Если canvas находится ниже середины экрана - останавливаем анимацию
-                if (!isCanvasAboveMiddle) {
-                    if (isAnimating) {
-                        isAnimating = false;
-                        if (animationId) {
-                            cancelAnimationFrame(animationId);
-                            animationId = null;
-                        }
-                    }
-                    return; // Не воспроизводим анимацию, если canvas ниже середины экрана
-                }
             }
             
             // Если анимация заблокирована (проигрывается по клику) - не обновляем
