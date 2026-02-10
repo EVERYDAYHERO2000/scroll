@@ -309,6 +309,108 @@
             padding: 0;
         }
 
+        /* Promo карточки */
+        .card-promo {
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+            height: 310px;
+        }
+
+        .card-promo .card-inner {
+            padding: 0;
+            position: relative;
+            height: 310px;
+        }
+
+        .card-promo-content {
+            position: relative;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .card-promo-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .card-promo-image {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .card-promo-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            margin: 0 0 8px 0;
+            line-height: 1.2;
+            z-index: 2;
+            position: relative;
+        }
+
+        .card-promo-description {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0 0 16px 0;
+            line-height: 1.4;
+            z-index: 2;
+            position: relative;
+        }
+
+        .card-promo-button {
+            background: #F8604A;
+            color: #fff;
+            border: none;
+            border-radius: 99px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            z-index: 2;
+            position: relative;
+            align-self: flex-start;
+            font-family: "YS Text", Arial, sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            overflow: hidden;
+        }
+
+        .card-promo-button:hover {
+            background: #FF5722;
+        }
+
+        .card-promo-button:active {
+            background: #E64A19;
+        }
+
+        .card-promo-button .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            pointer-events: none;
+            animation: ripple-anim 0.6s ease-out forwards;
+        }
+
         /* Разворачиваемые карточки (стили из cards-demo) */
         .card-collapsible {
             --spring-ease-expand: cubic-bezier(0.34, 1.56, 0.64, 1); /* Пружинный для разворачивания */
@@ -999,6 +1101,21 @@
                     </div>
                 </div>
 
+                <!-- Promo карточка -->
+                <div class="card card-promo">
+                    <div class="card-inner">
+                        <div class="card-promo-background" style="background: linear-gradient(135deg, #4A4A4A 0%, #2A2A2A 100%);"></div>
+                        <div class="card-promo-content">
+                            <div>
+                                <h2 class="card-promo-title" style="color:#fff ; font-size: 19px; font-weight: 600; line-height: 24px; width: 210px; margin-bottom: 8px;">Вторая сим-карта с&nbsp;секретным номером</h2>
+                                <p class="card-promo-description" style="color:#fff; opacity:.7; font-size: 13px; font-weight: 400; line-height: 18px; width: 210px;">Мошенники про него даже не&nbsp;узнают. Используйте для&nbsp;входа в&nbsp;приложения и&nbsp;на Госуслуги</p>
+                            </div>
+                            <button class="card-promo-button">Оформить за 0 ₽ *</button>
+                        </div>
+                        <img src="bg1.png" style="transform:scale(2.3) translate(-20px, -18px)" alt="" class="card-promo-image">
+                    </div>
+                </div>
+
                 <div class="card card-menu-only" id="secondCard">
                     <div class="card-inner">
                         <div class="card-menu">
@@ -1182,6 +1299,15 @@
             // Ripple эффект для card-menu-item
             document.querySelectorAll('.card-menu-item').forEach(function(menuItem) {
                 menuItem.addEventListener('click', function(e) {
+                    var x = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : e.clientX);
+                    var y = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : e.clientY);
+                    if (x != null && y != null) createRipple(this, x, y);
+                });
+            });
+
+            // Ripple эффект для кнопки promo карточки
+            document.querySelectorAll('.card-promo-button').forEach(function(button) {
+                button.addEventListener('click', function(e) {
                     var x = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : e.clientX);
                     var y = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : e.clientY);
                     if (x != null && y != null) createRipple(this, x, y);
